@@ -1,0 +1,13 @@
+<RCC>
+    <qresource>
+        <file>DesignLayout.qmlproject</file>
+        <file>DesignLayout/Constants.qml</file>
+        <file>DesignLayout/EventListModel.qml</file>
+        <file>DesignLayout/EventListSimulator.qml</file>
+        <file>DesignLayout/qmldir</file>
+        <file>DesignLayoutContent/App.qml</file>
+        <file>DesignLayoutContent/Graphs/LineChart.ui.qml</file>
+        <file>DesignLayoutContent/Screen01.ui.qml</file>
+        <file>qtquickcontrols2.conf</file>
+    </qresource>
+</RCC>
