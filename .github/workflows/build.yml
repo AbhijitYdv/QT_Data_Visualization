@@ -26,7 +26,7 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: "6.8.*"          # keep in sync with docs/onboarding.md
+          version: "6.9.*"          # keep in sync with docs/onboarding.md
           arch: ${{ matrix.qt_arch }}
           cache: true
           # modules: qtcharts qtpositioning   # uncomment once the code uses them

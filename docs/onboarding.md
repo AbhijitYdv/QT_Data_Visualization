@@ -3,7 +3,7 @@
 Goal: every teammate can clone the repo, build it, and launch the app on their own laptop. Work through this document top to bottom. Do not skip the verification step at the end.
 
 > **Team rule:** everyone uses the **same Qt version**. Mixed Qt versions cause more problems than mixed operating systems.
-> **Pinned version:** Qt 6.8 LTS (team to confirm before Sprint 1 and update this line if changed).
+> **Pinned version:** Qt 6.9 (team to confirm before Sprint 1 and update this line if changed).
 
 ---
 
@@ -30,7 +30,7 @@ This installs Apple Clang and Git. Accept the prompts and wait for it to finish.
 ### 2.2 Qt
 
 1. Download the **Qt Online Installer** from https://www.qt.io/download-open-source (sign in with your Qt account).
-2. In the installer, expand the pinned Qt version (6.8) and tick:
+2. In the installer, expand the pinned Qt version (6.9) and tick:
    - **macOS** (the desktop kit)
    - **Additional Libraries:** Qt Charts, Qt Positioning, Qt Network Authorization is not needed
    - **Qt Debug Information Files** (optional, helps debugging)
@@ -62,7 +62,7 @@ Install Git for Windows from https://git-scm.com/download/win. Use the default o
 ### 3.3 Qt
 
 1. Download the **Qt Online Installer** from https://www.qt.io/download-open-source and sign in.
-2. Expand the pinned Qt version (6.8) and tick:
+2. Expand the pinned Qt version (6.9) and tick:
    - **MSVC 2022 64-bit** (the desktop kit; the year must match your Visual Studio compiler)
    - **Additional Libraries:** Qt Charts, Qt Positioning
 3. Under **Developer and Designer Tools**, tick:
@@ -108,8 +108,8 @@ The smoke test is a minimal Qt window used only to prove your environment works.
 
 1. Open Qt Creator → **File → Open File or Project** → select the top-level `CMakeLists.txt`.
 2. When asked to configure, select the **Desktop** kit for your platform:
-   - macOS: "Desktop Qt 6.8.x clang 64-bit"
-   - Windows: "Desktop Qt 6.8.x MSVC2022 64-bit"
+   - macOS: "Desktop Qt 6.9.x clang 64-bit"
+   - Windows: "Desktop Qt 6.9.x MSVC2022 64-bit"
 3. Click **Configure Project**.
 4. Press the green **Run** button (Ctrl/Cmd + R).
 5. A window titled "Hello Qt" should appear.
@@ -119,7 +119,7 @@ The smoke test is a minimal Qt window used only to prove your environment works.
 macOS or Windows (from a Qt/MSVC developer prompt on Windows):
 
 ```bash
-cmake -S . -B build -G Ninja -DCMAKE_PREFIX_PATH=/path/to/Qt/6.8.x/<kit>
+cmake -S . -B build -G Ninja -DCMAKE_PREFIX_PATH=/path/to/Qt/6.9.x/<kit>
 cmake --build build
 ```
 
@@ -210,7 +210,7 @@ Code habits for cross-platform safety:
 - [ ] GitHub account created and added to the repo
 - [ ] Qt account created
 - [ ] Compiler installed (Xcode command line tools on Mac, MSVC Build Tools on Windows)
-- [ ] Qt 6.8 installed with Qt Creator, CMake, Ninja, and Qt Charts
+- [ ] Qt 6.9 installed with Qt Creator, CMake, Ninja, and Qt Charts
 - [ ] Repo cloned
 - [ ] Smoke test builds and the "Hello Qt" window appears
 - [ ] Screenshot of the running window posted to the team channel
