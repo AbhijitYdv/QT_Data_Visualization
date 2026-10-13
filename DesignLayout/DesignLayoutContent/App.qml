@@ -8,7 +8,7 @@ Window {
     visible: true
     title: "DesignLayout"
 
-    Screen01 {
+    Main {
         id: mainScreen
 
         anchors.centerIn: parent

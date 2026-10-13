@@ -7,7 +7,8 @@
         <file>DesignLayout/qmldir</file>
         <file>DesignLayoutContent/App.qml</file>
         <file>DesignLayoutContent/Graphs/LineChart.ui.qml</file>
-        <file>DesignLayoutContent/Screen01.ui.qml</file>
+        <file>DesignLayoutContent/LineGraph.qml</file>
+        <file>DesignLayoutContent/Main.ui.qml</file>
         <file>qtquickcontrols2.conf</file>
     </qresource>
 </RCC>

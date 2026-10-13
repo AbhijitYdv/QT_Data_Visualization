@@ -12,4 +12,15 @@ Item {
     id: root
     width: 1920
     height: 1080
+
+    Rectangle {
+        id: rectangle
+        x: 780
+        y: 394
+        width: 361
+        height: 293
+        color: "#ffffff"
+
+
+    }
 }
