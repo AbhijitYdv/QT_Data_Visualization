@@ -1,6 +1,8 @@
 
 #include "graphcontroller.h"
-
+#include <QDebug>
+#include <fstream>
+#include <string>
 GraphController::GraphController(QObject *parent)
     : QObject(parent)
 {
@@ -21,10 +23,14 @@ void GraphController::clearGraph()
 void GraphController::loadDefaultPoints()
 {
     clearGraph();
+    std::ifstream f("C:\\default.txt");
+    std::string text;
+    double x, y;
 
-    addPoint(0, 0);
-    addPoint(0, 1);
-    addPoint(0, 11);
-    addPoint(10, 1);
-    addPoint(13, 13);
+    while (f >> x >> y) {
+        addPoint(x, y);
+    }
+
+    f.close();
+
 }
