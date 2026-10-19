@@ -16,15 +16,36 @@ set(QML_IMPORT_PATH ${QT_QML_OUTPUT_DIRECTORY}
     FORCE
 )
 
-find_package(Qt6 6.8 REQUIRED COMPONENTS Core Gui Widgets Qml Quick QuickTimeline ShaderTools)
+
+find_package(Qt6 6.8 REQUIRED COMPONENTS
+    Core
+    Gui
+    Widgets
+    Qml
+    Quick
+    QuickWidgets
+    Charts
+    QuickTimeline
+    ShaderTools
+)
 qt_standard_project_setup()
 
 
-qt_add_executable(${CMAKE_PROJECT_NAME})
+qt_add_executable(${CMAKE_PROJECT_NAME}
+    App/graphcontroller.h App/graphcontroller.cpp
+
+)
 qt_add_resources(${CMAKE_PROJECT_NAME} "configuration"
     PREFIX "/"
     FILES
         qtquickcontrols2.conf)
+
+target_link_libraries(${CMAKE_PROJECT_NAME}
+    PRIVATE
+    Qt6::Widgets
+    Qt6::QuickWidgets
+    Qt6::Charts
+)
 
 include(qds)
 

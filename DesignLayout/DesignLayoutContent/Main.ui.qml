@@ -19,27 +19,28 @@ Rectangle {
 
     Frame {
         id: frame
-        x: 8
+        x: 0
         y: 0
         width: parent.width * .25
         height: parent.height
 
         Frame {
-            id: lineChartSwitch
-            x: -12
-            y: 83
+            id: lineChartSwitchFrame
+            x: 0
+            y: parent.height * .1
             width: parent.width
-            height: parent.height * .1
+            height: parent.height * .05
 
             opacity: 1
             visible: true
 
             SwitchDelegate {
-                id: switchDelegate
-                x: 88
-                y: -14
-                width: 239
-                height: 76
+                id: lineChartSwitch
+                checked: false
+                x: parent.width * .65
+                y: 0
+                width: parent.width * .3
+                height: parent.height
 
                 icon.color: "white"
 
@@ -53,22 +54,25 @@ Rectangle {
 
             Label {
                 id: label1
-                x: 32
-                y: 5
-                width: 123
-                height: 38
+                x: parent.width * .1
+                y: 0
+                width: parent.width * .5
+                height: parent.height
                 text: qsTr("Line Chart")
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+                transformOrigin: Item.Center
                 font.styleName: "Bold"
                 font.family: "Segoe UI"
-                font.pointSize: 20
+                font.pointSize: 30
                 color: "white"
             }
         }
 
         Text {
             id: label
-            x: 889
-            y: 6
+            x: parent.width
+            y: 0
             color: "#ffffff"
             text: qsTr("Plugins")
             font.family: Constants.font.family
@@ -100,15 +104,22 @@ Rectangle {
         }
     }
 
-    MouseArea {
-        id: mouseArea
-        x: -663
-        y: -264
-        anchors.fill: parent
-        anchors.leftMargin: 535
-        anchors.rightMargin: 123
-        anchors.topMargin: 43
-        anchors.bottomMargin: 42
+    Rectangle {
+        id: lineChart
+        x: parent.width * 0.4
+        y: parent.height * 0.2
+        width: parent.width * .5
+        height: parent.height * 0.6
+        color: "#ffffff"
+        visible: lineChartSwitch.checked
+        DragHandler {
+                id: graphDragHandler
+                target: lineGraph
+            }
+        LineGraph {
+                anchors.fill: parent
+            }
+
     }
     states: [
         State {
