@@ -2,7 +2,7 @@ import QmlProject
 
 Project {
     mainFile: "DesignLayoutContent/App.qml"
-    mainUiFile: "DesignLayoutContent/Screen01.ui.qml"
+    mainUiFile: "DesignLayoutContent/Main.ui.qml"
 
     /* Include .qml, .js, and image files from current directory and subdirectories */
     QmlFiles {

@@ -1,8 +1,8 @@
-// Copyright (C) 2024 The Qt Company Ltd.
-// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
 #include <QApplication>
 #include <QQmlApplicationEngine>
+#include <QQmlContext>
+#include "graphcontroller.h"
 
 #include "autogen/environment.h"
 
@@ -11,17 +11,35 @@ int main(int argc, char *argv[])
     set_qt_environment();
     QApplication app(argc, argv);
 
-    QQmlApplicationEngine engine;
-    const QUrl url(mainQmlFile);
-    QObject::connect(
-                &engine, &QQmlApplicationEngine::objectCreated, &app,
-                [url](QObject *obj, const QUrl &objUrl) {
-        if (!obj && url == objUrl)
-            QCoreApplication::exit(-1);
-    }, Qt::QueuedConnection);
+    // Created before the engine so it is destroyed after it:
+    // QML keeps reading from it until the engine has shut down.
+    GraphController graphController;
 
-    engine.addImportPath(QCoreApplication::applicationDirPath() + "/qml");
+    QQmlApplicationEngine engine;
+
+    engine.rootContext()->setContextProperty(
+        "graphController",
+        &graphController
+        );
+
+    const QUrl url(mainQmlFile);
+
+    QObject::connect(
+        &engine,
+        &QQmlApplicationEngine::objectCreated,
+        &app,
+        [url](QObject *obj, const QUrl &objUrl) {
+            if (!obj && url == objUrl)
+                QCoreApplication::exit(-1);
+        },
+        Qt::QueuedConnection
+        );
+
+    engine.addImportPath(
+        QCoreApplication::applicationDirPath() + "/qml"
+        );
     engine.addImportPath(":/");
+
     engine.load(url);
 
     if (engine.rootObjects().isEmpty())

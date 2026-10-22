@@ -1,5 +1,3 @@
-
-
 /*
 This is a UI file (.ui.qml) that is intended to be edited in Qt Design Studio only.
 It is supposed to be strictly declarative and only uses a subset of QML. If you edit
@@ -8,116 +6,255 @@ Check out https://doc.qt.io/qtcreator/creator-quick-ui-forms.html for details on
 */
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 import DesignLayout
-import QtQuick.Studio.DesignEffects
 
 Rectangle {
-    id: rectangle
+    id: root
     width: Constants.width
     height: Constants.height
-    color: "#303030"
+    color: "#171b1e"
 
-    Frame {
-        id: frame
-        x: 8
-        y: 0
-        width: parent.width * .25
-        height: parent.height
-
-        Frame {
-            id: lineChartSwitch
-            x: -12
-            y: 83
-            width: parent.width
-            height: parent.height * .1
-
-            opacity: 1
-            visible: true
-
-            SwitchDelegate {
-                id: switchDelegate
-                x: 88
-                y: -14
-                width: 239
-                height: 76
-
-                icon.color: "white"
-
-                DesignEffect {
-                    visible: false
-                    effects: [
-                        DesignDropShadow {}
-                    ]
-                }
-            }
-
-            Label {
-                id: label1
-                x: 32
-                y: 5
-                width: 123
-                height: 38
-                text: qsTr("Line Chart")
-                font.styleName: "Bold"
-                font.family: "Segoe UI"
-                font.pointSize: 20
-                color: "white"
-            }
-        }
+    // ================= Header bar =================
+    Rectangle {
+        id: header
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.right: parent.right
+        height: 64
+        color: "#1b2023"
 
         Text {
-            id: label
-            x: 889
-            y: 6
-            color: "#ffffff"
-            text: qsTr("Plugins")
-            font.family: Constants.font.family
-            anchors.topMargin: 45
-            font.styleName: "Light"
-            anchors.horizontalCenterOffset: -131
-            font.pointSize: 30
-            anchors.horizontalCenter: parent.horizontalCenter
+            id: appTitle
+            anchors.left: parent.left
+            anchors.leftMargin: 24
+            anchors.verticalCenter: parent.verticalCenter
+            text: qsTr("DataScope")
+            color: "#e6e8ea"
+            font.pixelSize: 18
+            font.bold: true
+        }
 
-            SequentialAnimation {
-                id: animation
+        Row {
+            id: headerActions
+            anchors.right: parent.right
+            anchors.rightMargin: 24
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 8
 
-                ColorAnimation {
-                    id: colorAnimation1
-                    target: rectangle
-                    property: "color"
-                    to: "#2294c6"
-                    from: Constants.backgroundColor
-                }
+            // Opens the file picker (logic in ImportButton.qml)
+            ImportButton {
+                id: loadButton
+                text: qsTr("Load dataset")
+            }
 
-                ColorAnimation {
-                    id: colorAnimation2
-                    target: rectangle
-                    property: "color"
-                    to: Constants.backgroundColor
-                    from: "#2294c6"
+            // Placeholder for the export feature - not wired up yet
+            Rectangle {
+                id: exportButton
+                width: exportLabel.implicitWidth + 28
+                height: 34
+                radius: 4
+                color: "#1b2023"
+                border.color: "#3a4348"
+                opacity: 0.5
+
+                Text {
+                    id: exportLabel
+                    anchors.centerIn: parent
+                    text: qsTr("Export snapshot")
+                    color: "#e6e8ea"
+                    font.pixelSize: 13
                 }
             }
         }
+
+        Rectangle {
+            id: headerBorder
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            height: 1
+            color: "#2a3034"
+        }
     }
 
-    MouseArea {
-        id: mouseArea
-        x: -663
-        y: -264
-        anchors.fill: parent
-        anchors.leftMargin: 535
-        anchors.rightMargin: 123
-        anchors.topMargin: 43
-        anchors.bottomMargin: 42
-    }
-    states: [
-        State {
-            name: "clicked"
+    // ================= Sidebar =================
+    Rectangle {
+        id: sidebar
+        anchors.top: header.bottom
+        anchors.left: parent.left
+        anchors.bottom: parent.bottom
+        width: 240
+        color: "#1b2023"
 
-            PropertyChanges {
-                target: label
-                text: qsTr("Button Checked")
+        Column {
+            id: pluginList
+            anchors.top: parent.top
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.margins: 20
+            spacing: 6
+
+            Text {
+                id: pluginsHeading
+                text: qsTr("Plugins")
+                color: "#8a9399"
+                font.pixelSize: 13
+                bottomPadding: 6
+            }
+
+            PluginRow {
+                id: linePlugin
+                width: parent.width
+                text: qsTr("Line chart")
+                checked: true
+            }
+
+            PluginRow {
+                id: barPlugin
+                width: parent.width
+                text: qsTr("Bar chart")
+                checked: true
+            }
+
+            PluginRow {
+                id: simpleLinePlugin
+                width: parent.width
+                text: qsTr("Line graph")
+                checked: true
             }
         }
-    ]
+
+        // ---- Column pickers (logic lives in DataControls.qml) ----
+        Text {
+            id: dataHeading
+            anchors.top: pluginList.bottom
+            anchors.topMargin: 28
+            anchors.left: parent.left
+            anchors.leftMargin: 20
+            text: qsTr("Data")
+            color: "#8a9399"
+            font.pixelSize: 13
+        }
+
+        DataControls {
+            id: dataControls
+            anchors.top: dataHeading.bottom
+            anchors.topMargin: 10
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.leftMargin: 20
+            anchors.rightMargin: 20
+        }
+
+        Column {
+            id: datasetSection
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            anchors.margins: 20
+            spacing: 8
+
+            Text {
+                id: datasetHeading
+                text: qsTr("Dataset")
+                color: "#8a9399"
+                font.pixelSize: 13
+            }
+
+            DatasetCard {
+                id: datasetCard
+                width: parent.width
+            }
+        }
+
+        Rectangle {
+            id: sidebarBorder
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            anchors.right: parent.right
+            width: 1
+            color: "#2a3034"
+        }
+    }
+
+    // ================= Chart grid =================
+    GridLayout {
+        id: chartGrid
+        anchors.top: header.bottom
+        anchors.left: sidebar.right
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.margins: 20
+        columns: 2
+        rowSpacing: 16
+        columnSpacing: 16
+
+        DashboardCard {
+            id: lineCard
+            title: qsTr("Line chart")
+            tag: "line"
+            visible: linePlugin.checked
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.preferredWidth: 100
+            Layout.preferredHeight: 100
+
+            LineGraph {
+                id: lineGraph
+            }
+        }
+
+        DashboardCard {
+            id: barCard
+            title: qsTr("Bar chart")
+            tag: "bar"
+            visible: barPlugin.checked
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.preferredWidth: 100
+            Layout.preferredHeight: 100
+
+            BarGraph {
+                id: barGraph
+            }
+        }
+
+        DashboardCard {
+            id: simpleLineCard
+            title: qsTr("Line graph")
+            tag: "line-simple"
+            visible: simpleLinePlugin.checked
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.preferredWidth: 100
+            Layout.preferredHeight: 100
+
+            SimpleLineGraph {
+                id: simpleLineGraph
+            }
+        }
+
+        // Placeholder slot for future plugins
+        Rectangle {
+            id: addVisualization
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.preferredWidth: 100
+            Layout.preferredHeight: 100
+            color: "#171b1e"
+            radius: 4
+            border.color: "#2a3034"
+
+            Text {
+                id: addLabel
+                anchors.centerIn: parent
+                horizontalAlignment: Text.AlignHCenter
+                text: qsTr("+\nAdd visualization")
+                color: "#8a9399"
+                font.pixelSize: 13
+                lineHeight: 1.4
+            }
+        }
+    }
 }

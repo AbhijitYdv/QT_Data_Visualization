@@ -54,7 +54,7 @@ public:
         centralwidget->setObjectName("centralwidget");
         horizontalFrame = new QFrame(centralwidget);
         horizontalFrame->setObjectName("horizontalFrame");
-        horizontalFrame->setGeometry(QRect(10, 10, 1291, 531));
+        horizontalFrame->setGeometry(QRect(30, 30, 1291, 531));
         horizontalLayout = new QHBoxLayout(horizontalFrame);
         horizontalLayout->setObjectName("horizontalLayout");
         MainWindow->setCentralWidget(centralwidget);
