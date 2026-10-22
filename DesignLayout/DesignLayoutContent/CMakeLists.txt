@@ -12,7 +12,12 @@ qt6_add_qml_module(DesignLayoutContent
         "App.qml"
         "Main.ui.qml"
         "LineGraph.qml"
-        "Graphs/LineChart.ui.qml"
+        "SimpleLineGraph.qml"
+        "BarGraph.qml"
+        "ImportButton.qml"
+        "DashboardCard.qml"
+        "PluginRow.qml"
+        "DatasetCard.qml"
+        "ColumnPicker.qml"
+        "DataControls.qml"
 )
-
-

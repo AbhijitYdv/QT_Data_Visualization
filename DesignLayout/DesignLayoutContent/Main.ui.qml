@@ -1,5 +1,3 @@
-
-
 /*
 This is a UI file (.ui.qml) that is intended to be edited in Qt Design Studio only.
 It is supposed to be strictly declarative and only uses a subset of QML. If you edit
@@ -8,127 +6,255 @@ Check out https://doc.qt.io/qtcreator/creator-quick-ui-forms.html for details on
 */
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 import DesignLayout
-import QtQuick.Studio.DesignEffects
 
 Rectangle {
-    id: rectangle
+    id: root
     width: Constants.width
     height: Constants.height
-    color: "#303030"
+    color: "#171b1e"
 
-    Frame {
-        id: frame
-        x: 0
-        y: 0
-        width: parent.width * .25
-        height: parent.height
-
-        Frame {
-            id: lineChartSwitchFrame
-            x: 0
-            y: parent.height * .1
-            width: parent.width
-            height: parent.height * .05
-
-            opacity: 1
-            visible: true
-
-            SwitchDelegate {
-                id: lineChartSwitch
-                checked: false
-                x: parent.width * .65
-                y: 0
-                width: parent.width * .3
-                height: parent.height
-
-                icon.color: "white"
-
-                DesignEffect {
-                    visible: false
-                    effects: [
-                        DesignDropShadow {}
-                    ]
-                }
-            }
-
-            Label {
-                id: label1
-                x: parent.width * .1
-                y: 0
-                width: parent.width * .5
-                height: parent.height
-                text: qsTr("Line Chart")
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
-                transformOrigin: Item.Center
-                font.styleName: "Bold"
-                font.family: "Segoe UI"
-                font.pointSize: 30
-                color: "white"
-            }
-        }
+    // ================= Header bar =================
+    Rectangle {
+        id: header
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.right: parent.right
+        height: 64
+        color: "#1b2023"
 
         Text {
-            id: label
-            x: parent.width
-            y: 0
-            color: "#ffffff"
-            text: qsTr("Plugins")
-            font.family: Constants.font.family
-            anchors.topMargin: 45
-            font.styleName: "Light"
-            anchors.horizontalCenterOffset: -131
-            font.pointSize: 30
-            anchors.horizontalCenter: parent.horizontalCenter
+            id: appTitle
+            anchors.left: parent.left
+            anchors.leftMargin: 24
+            anchors.verticalCenter: parent.verticalCenter
+            text: qsTr("DataScope")
+            color: "#e6e8ea"
+            font.pixelSize: 18
+            font.bold: true
+        }
 
-            SequentialAnimation {
-                id: animation
+        Row {
+            id: headerActions
+            anchors.right: parent.right
+            anchors.rightMargin: 24
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 8
 
-                ColorAnimation {
-                    id: colorAnimation1
-                    target: rectangle
-                    property: "color"
-                    to: "#2294c6"
-                    from: Constants.backgroundColor
-                }
+            // Opens the file picker (logic in ImportButton.qml)
+            ImportButton {
+                id: loadButton
+                text: qsTr("Load dataset")
+            }
 
-                ColorAnimation {
-                    id: colorAnimation2
-                    target: rectangle
-                    property: "color"
-                    to: Constants.backgroundColor
-                    from: "#2294c6"
+            // Placeholder for the export feature - not wired up yet
+            Rectangle {
+                id: exportButton
+                width: exportLabel.implicitWidth + 28
+                height: 34
+                radius: 4
+                color: "#1b2023"
+                border.color: "#3a4348"
+                opacity: 0.5
+
+                Text {
+                    id: exportLabel
+                    anchors.centerIn: parent
+                    text: qsTr("Export snapshot")
+                    color: "#e6e8ea"
+                    font.pixelSize: 13
                 }
             }
         }
+
+        Rectangle {
+            id: headerBorder
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            height: 1
+            color: "#2a3034"
+        }
     }
 
+    // ================= Sidebar =================
     Rectangle {
-        id: lineChart
-        x: parent.width * 0.4
-        y: parent.height * 0.2
-        width: parent.width * .5
-        height: parent.height * 0.6
-        color: "#ffffff"
-        visible: lineChartSwitch.checked
-        DragHandler {
-                id: graphDragHandler
-                target: lineGraph
-            }
-        LineGraph {
-                anchors.fill: parent
+        id: sidebar
+        anchors.top: header.bottom
+        anchors.left: parent.left
+        anchors.bottom: parent.bottom
+        width: 240
+        color: "#1b2023"
+
+        Column {
+            id: pluginList
+            anchors.top: parent.top
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.margins: 20
+            spacing: 6
+
+            Text {
+                id: pluginsHeading
+                text: qsTr("Plugins")
+                color: "#8a9399"
+                font.pixelSize: 13
+                bottomPadding: 6
             }
 
-    }
-    states: [
-        State {
-            name: "clicked"
+            PluginRow {
+                id: linePlugin
+                width: parent.width
+                text: qsTr("Line chart")
+                checked: true
+            }
 
-            PropertyChanges {
-                target: label
-                text: qsTr("Button Checked")
+            PluginRow {
+                id: barPlugin
+                width: parent.width
+                text: qsTr("Bar chart")
+                checked: true
+            }
+
+            PluginRow {
+                id: simpleLinePlugin
+                width: parent.width
+                text: qsTr("Line graph")
+                checked: true
             }
         }
-    ]
+
+        // ---- Column pickers (logic lives in DataControls.qml) ----
+        Text {
+            id: dataHeading
+            anchors.top: pluginList.bottom
+            anchors.topMargin: 28
+            anchors.left: parent.left
+            anchors.leftMargin: 20
+            text: qsTr("Data")
+            color: "#8a9399"
+            font.pixelSize: 13
+        }
+
+        DataControls {
+            id: dataControls
+            anchors.top: dataHeading.bottom
+            anchors.topMargin: 10
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.leftMargin: 20
+            anchors.rightMargin: 20
+        }
+
+        Column {
+            id: datasetSection
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            anchors.margins: 20
+            spacing: 8
+
+            Text {
+                id: datasetHeading
+                text: qsTr("Dataset")
+                color: "#8a9399"
+                font.pixelSize: 13
+            }
+
+            DatasetCard {
+                id: datasetCard
+                width: parent.width
+            }
+        }
+
+        Rectangle {
+            id: sidebarBorder
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            anchors.right: parent.right
+            width: 1
+            color: "#2a3034"
+        }
+    }
+
+    // ================= Chart grid =================
+    GridLayout {
+        id: chartGrid
+        anchors.top: header.bottom
+        anchors.left: sidebar.right
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.margins: 20
+        columns: 2
+        rowSpacing: 16
+        columnSpacing: 16
+
+        DashboardCard {
+            id: lineCard
+            title: qsTr("Line chart")
+            tag: "line"
+            visible: linePlugin.checked
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.preferredWidth: 100
+            Layout.preferredHeight: 100
+
+            LineGraph {
+                id: lineGraph
+            }
+        }
+
+        DashboardCard {
+            id: barCard
+            title: qsTr("Bar chart")
+            tag: "bar"
+            visible: barPlugin.checked
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.preferredWidth: 100
+            Layout.preferredHeight: 100
+
+            BarGraph {
+                id: barGraph
+            }
+        }
+
+        DashboardCard {
+            id: simpleLineCard
+            title: qsTr("Line graph")
+            tag: "line-simple"
+            visible: simpleLinePlugin.checked
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.preferredWidth: 100
+            Layout.preferredHeight: 100
+
+            SimpleLineGraph {
+                id: simpleLineGraph
+            }
+        }
+
+        // Placeholder slot for future plugins
+        Rectangle {
+            id: addVisualization
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.preferredWidth: 100
+            Layout.preferredHeight: 100
+            color: "#171b1e"
+            radius: 4
+            border.color: "#2a3034"
+
+            Text {
+                id: addLabel
+                anchors.centerIn: parent
+                horizontalAlignment: Text.AlignHCenter
+                text: qsTr("+\nAdd visualization")
+                color: "#8a9399"
+                font.pixelSize: 13
+                lineHeight: 1.4
+            }
+        }
+    }
 }

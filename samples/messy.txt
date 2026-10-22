@@ -1,0 +1,13 @@
+# temperature log - lines starting with # are ignored
+hour	temp
+
+0	14.5
+1	13.9
+2	13.2
+not a number here
+3	12.8
+4	12.6
+5	13.1
+6,15.0
+7;17.2
+8	19.4

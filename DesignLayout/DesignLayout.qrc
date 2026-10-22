@@ -1,5 +1,5 @@
 <RCC>
-    <qresource>
+    <qresource prefix="/">
         <file>DesignLayout.qmlproject</file>
         <file>DesignLayout/Constants.qml</file>
         <file>DesignLayout/EventListModel.qml</file>
@@ -10,5 +10,11 @@
         <file>DesignLayoutContent/LineGraph.qml</file>
         <file>DesignLayoutContent/Main.ui.qml</file>
         <file>qtquickcontrols2.conf</file>
+        <file>DesignLayoutContent/BarGraph.qml</file>
+        <file>DesignLayoutContent/ImportButton.qml</file>
+        <file>DesignLayoutContent/SimpleLineGraph.qml</file>
+        <file>DesignLayout/DesignLayoutContent/DashboardCard.qml</file>
+        <file>DesignLayout/DesignLayoutContent/DatasetCard.qml</file>
+        <file>DesignLayout/DesignLayoutContent/PluginRow.qml</file>
     </qresource>
 </RCC>

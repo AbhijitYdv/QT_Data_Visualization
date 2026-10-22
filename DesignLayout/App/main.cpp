@@ -11,9 +11,11 @@ int main(int argc, char *argv[])
     set_qt_environment();
     QApplication app(argc, argv);
 
-    QQmlApplicationEngine engine;
-
+    // Created before the engine so it is destroyed after it:
+    // QML keeps reading from it until the engine has shut down.
     GraphController graphController;
+
+    QQmlApplicationEngine engine;
 
     engine.rootContext()->setContextProperty(
         "graphController",
