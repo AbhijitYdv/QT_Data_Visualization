@@ -19,6 +19,7 @@ set(QML_IMPORT_PATH ${QT_QML_OUTPUT_DIRECTORY}
 
 find_package(Qt6 6.8 REQUIRED COMPONENTS
     Core
+    Concurrent
     Gui
     Widgets
     Qml
@@ -42,6 +43,7 @@ qt_add_resources(${CMAKE_PROJECT_NAME} "configuration"
 
 target_link_libraries(${CMAKE_PROJECT_NAME}
     PRIVATE
+    Qt6::Concurrent
     Qt6::Widgets
     Qt6::QuickWidgets
     Qt6::Charts

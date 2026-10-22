@@ -1,8 +1,8 @@
 import QtQuick
 import QtCharts
 
-// Bar chart: one teal bar per point; labels are the X values
-// (formatted as MM-dd when X is a date).
+// Bar chart: up to 50 teal bars; bigger data is grouped and averaged.
+// Labels are the X values (MM-dd when X is a date; group start when grouped).
 ChartView {
     id: chart
     anchors.fill: parent
@@ -51,8 +51,9 @@ ChartView {
 
     Text {
         anchors.centerIn: parent
-        visible: graphController.pointCount === 0
-        text: qsTr("Load a dataset to see this chart")
+        visible: graphController.loading || graphController.pointCount === 0
+        text: graphController.loading ? qsTr("Loading…")
+                                      : qsTr("Load a dataset to see this chart")
         color: "#5a6369"
         font.pixelSize: 13
     }
@@ -64,15 +65,13 @@ ChartView {
     }
 
     function reload() {
-        const pts = graphController.points()
+        // At most 50 bars; larger data is grouped and averaged in C++.
+        const data = graphController.barData()
         const labels = []
-        const values = []
-        for (let i = 0; i < pts.length; ++i) {
-            labels.push(label(pts[i].x))
-            values.push(pts[i].y)
-        }
+        for (let i = 0; i < data.x.length; ++i)
+            labels.push(label(data.x[i]))
         axisX.categories = labels
-        barSet.values = values
+        barSet.values = data.y
     }
 
     Connections {

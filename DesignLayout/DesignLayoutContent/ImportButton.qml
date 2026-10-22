@@ -11,11 +11,12 @@ Rectangle {
     radius: 4
     color: mouse.pressed ? "#22292d" : (mouse.containsMouse ? "#20262a" : "#1b2023")
     border.color: mouse.containsMouse ? "#4f9a86" : "#3a4348"
+    opacity: graphController.loading ? 0.5 : 1.0
 
     Text {
         id: label
         anchors.centerIn: parent
-        text: root.text
+        text: graphController.loading ? qsTr("Loading…") : root.text
         color: "#e6e8ea"
         font.pixelSize: 13
     }
@@ -23,6 +24,7 @@ Rectangle {
     MouseArea {
         id: mouse
         anchors.fill: parent
+        enabled: !graphController.loading
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onClicked: fileDialog.open()

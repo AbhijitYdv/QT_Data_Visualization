@@ -8,18 +8,29 @@
 #include <QStringList>
 #include <QUrl>
 #include <QVariantList>
+#include <QVariantMap>
 #include <QVector>
 
-// Loads a .csv/.txt table, lets QML choose which columns to plot,
-// and hands the resulting (x, y) points to every chart.
+// Result of parsing a file on the background thread.
+struct GraphTable
+{
+    QString fileName;
+    QString error;              // non-empty if loading failed
+    QStringList headers;
+    QList<QStringList> rows;
+    QVector<int> types;         // one of the ColumnType values per column
+    int skippedLines = 0;
+};
+
+// Loads a .csv/.txt table in the background, lets QML choose which
+// columns to plot, and feeds the charts.
 //
-//  - Separator auto-detected: comma, semicolon, tab or spaces.
-//  - Header row auto-detected (first row with no numbers in it).
-//  - Each column is classified as Number, Date (20221101 / 2022-11-01) or Text.
-//  - X can be a number column, a date column, or "Row #".
-//  - Y must be a number column.
-//  - Optionally keep only rows where a text column equals one value
-//    (e.g. kind = だいこん).
+// Large files stay responsive because:
+//  - parsing runs on a worker thread (QtConcurrent);
+//  - line charts get a thinned copy of the data (min/max per bucket,
+//    at most ~2000 points), which looks the same at screen resolution;
+//  - the bar chart groups rows into at most 50 averaged bars;
+//  - points go into the chart series in one C++ call (fillSeries).
 class GraphController : public QObject
 {
     Q_OBJECT
@@ -31,8 +42,10 @@ class GraphController : public QObject
     Q_PROPERTY(double maxY READ maxY NOTIFY dataLoaded)
     Q_PROPERTY(bool xIsDate READ xIsDate NOTIFY dataLoaded)
     Q_PROPERTY(int pointCount READ pointCount NOTIFY dataLoaded)
+    Q_PROPERTY(int plottedCount READ plottedCount NOTIFY dataLoaded)
 
     // File info
+    Q_PROPERTY(bool loading READ loading NOTIFY loadingChanged)
     Q_PROPERTY(QString fileName READ fileName NOTIFY tableChanged)
     Q_PROPERTY(int rowCount READ rowCount NOTIFY tableChanged)
     Q_PROPERTY(QString statusMessage READ statusMessage NOTIFY statusChanged)
@@ -50,10 +63,22 @@ class GraphController : public QObject
     Q_PROPERTY(QString filterValue READ filterValue WRITE setFilterValue NOTIFY selectionChanged)
 
 public:
+    enum ColumnType { Text = 0, Number = 1, Date = 2 };
+
     explicit GraphController(QObject *parent = nullptr);
 
+    // Starts loading in the background; returns false if a load is already running.
     Q_INVOKABLE bool loadFile(const QUrl &fileUrl);
+
+    // Puts the (thinned) points into a QML LineSeries / ScatterSeries in one go.
+    Q_INVOKABLE void fillSeries(QObject *series) const;
+
+    // Bar chart data: { "x": [...], "y": [...], "grouped": bool }, at most 50 bars.
+    Q_INVOKABLE QVariantMap barData() const;
+
+    // All (unthinned) points as QML 'point' values - use only for small data.
     Q_INVOKABLE QVariantList points() const;
+
     Q_INVOKABLE void clearGraph();
 
     double minX() const { return m_minX; }
@@ -62,9 +87,11 @@ public:
     double maxY() const { return m_maxY; }
     bool xIsDate() const { return m_xIsDate; }
     int pointCount() const { return static_cast<int>(m_points.size()); }
+    int plottedCount() const { return static_cast<int>(m_linePoints.size()); }
 
-    QString fileName() const { return m_fileName; }
-    int rowCount() const { return static_cast<int>(m_rows.size()); }
+    bool loading() const { return m_loading; }
+    QString fileName() const { return m_table.fileName; }
+    int rowCount() const { return static_cast<int>(m_table.rows.size()); }
     QString statusMessage() const { return m_statusMessage; }
 
     QStringList xOptions() const;
@@ -88,24 +115,18 @@ signals:
     void statusChanged();
     void tableChanged();
     void selectionChanged();
+    void loadingChanged();
 
 private:
-    enum class ColumnType { Text, Number, Date };
-
-    static bool parseNumber(const QString &text, double *value);
-    static bool parseDate(const QString &text, double *msecs);
-    static QStringList splitLine(const QString &line, QChar delimiter);
-
-    void detectColumnTypes();
+    void applyTable(const GraphTable &table);
     void pickDefaultColumns();
     void refreshFilterValues();
     void rebuildPoints();
     void updateRange();
     void setStatus(const QString &message);
+    void setLoading(bool loading);
 
-    QStringList m_headers;
-    QList<QStringList> m_rows;
-    QVector<ColumnType> m_types;
+    GraphTable m_table;
 
     int m_xCol = -1;      // -1 = use row number
     int m_yCol = -1;      // -1 = nothing to plot
@@ -113,16 +134,20 @@ private:
     QString m_filterValue;
     QStringList m_filterValues;
 
-    QList<QPointF> m_points;
+    QList<QPointF> m_points;      // every point
+    QList<QPointF> m_linePoints;  // thinned for line charts
+    QVariantList m_barX;
+    QVariantList m_barY;
+    bool m_barGrouped = false;
+
     bool m_xIsDate = false;
     double m_minX = 0.0;
     double m_maxX = 1.0;
     double m_minY = 0.0;
     double m_maxY = 1.0;
 
-    QString m_fileName;
+    bool m_loading = false;
     QString m_statusMessage;
-    int m_skippedLines = 0;
 };
 
 #endif // GRAPHCONTROLLER_H

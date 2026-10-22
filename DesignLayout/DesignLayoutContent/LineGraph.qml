@@ -61,7 +61,7 @@ ChartView {
         visible: !graphController.xIsDate
         color: "#4f9a86"
         width: 2
-        pointsVisible: true
+        pointsVisible: graphController.plottedCount <= 200
     }
 
     LineSeries {
@@ -71,13 +71,14 @@ ChartView {
         visible: graphController.xIsDate
         color: "#4f9a86"
         width: 2
-        pointsVisible: true
+        pointsVisible: graphController.plottedCount <= 200
     }
 
     Text {
         anchors.centerIn: parent
-        visible: graphController.pointCount === 0
-        text: qsTr("Load a dataset to see this chart")
+        visible: graphController.loading || graphController.pointCount === 0
+        text: graphController.loading ? qsTr("Loading…")
+                                      : qsTr("Load a dataset to see this chart")
         color: "#5a6369"
         font.pixelSize: 13
     }
@@ -85,10 +86,8 @@ ChartView {
     function reload() {
         valueSeries.clear()
         dateSeries.clear()
-        const target = graphController.xIsDate ? dateSeries : valueSeries
-        const pts = graphController.points()
-        for (let i = 0; i < pts.length; ++i)
-            target.append(pts[i].x, pts[i].y)
+        // One C++ call fills the series with the thinned points.
+        graphController.fillSeries(graphController.xIsDate ? dateSeries : valueSeries)
     }
 
     Connections {
