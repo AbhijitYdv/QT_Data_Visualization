@@ -13,6 +13,9 @@
 
 #include <QLineSeries>
 
+#include <QFileDialog>
+#include <QDebug>
+
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class MainWindow;
@@ -26,6 +29,9 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
+
+private slots:
+    void on_pushButton_clicked();
 
 private:
     Ui::MainWindow *ui;

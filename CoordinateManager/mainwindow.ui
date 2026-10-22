@@ -18,12 +18,25 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>10</y>
+      <y>60</y>
       <width>1291</width>
-      <height>531</height>
+      <height>481</height>
      </rect>
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout"/>
+   </widget>
+   <widget class="QPushButton" name="pushButton">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>10</y>
+      <width>191</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>open</string>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">

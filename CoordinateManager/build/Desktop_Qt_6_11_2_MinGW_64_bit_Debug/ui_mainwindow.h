@@ -17,6 +17,7 @@
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMenuBar>
+#include <QtWidgets/QPushButton>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QWidget>
 
@@ -32,6 +33,7 @@ public:
     QWidget *centralwidget;
     QFrame *horizontalFrame;
     QHBoxLayout *horizontalLayout;
+    QPushButton *pushButton;
     QMenuBar *menubar;
     QMenu *menuGraph_Type;
     QMenu *menuExport;
@@ -54,9 +56,12 @@ public:
         centralwidget->setObjectName("centralwidget");
         horizontalFrame = new QFrame(centralwidget);
         horizontalFrame->setObjectName("horizontalFrame");
-        horizontalFrame->setGeometry(QRect(10, 10, 1291, 531));
+        horizontalFrame->setGeometry(QRect(10, 60, 1291, 481));
         horizontalLayout = new QHBoxLayout(horizontalFrame);
         horizontalLayout->setObjectName("horizontalLayout");
+        pushButton = new QPushButton(centralwidget);
+        pushButton->setObjectName("pushButton");
+        pushButton->setGeometry(QRect(20, 10, 191, 51));
         MainWindow->setCentralWidget(centralwidget);
         menubar = new QMenuBar(MainWindow);
         menubar->setObjectName("menubar");
@@ -89,6 +94,7 @@ public:
         actionExport->setText(QCoreApplication::translate("MainWindow", "Export", nullptr));
         actionLine->setText(QCoreApplication::translate("MainWindow", "Line", nullptr));
         actionScatterplot->setText(QCoreApplication::translate("MainWindow", "Scatterplot", nullptr));
+        pushButton->setText(QCoreApplication::translate("MainWindow", "open", nullptr));
         menuGraph_Type->setTitle(QCoreApplication::translate("MainWindow", "Graph Type", nullptr));
         menuExport->setTitle(QCoreApplication::translate("MainWindow", "File", nullptr));
     } // retranslateUi
