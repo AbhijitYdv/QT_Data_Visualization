@@ -29,7 +29,7 @@ jobs:
           version: "6.9.*"          # keep in sync with docs/onboarding.md
           arch: ${{ matrix.qt_arch }}
           cache: true
-          # modules: qtcharts qtpositioning   # uncomment once the code uses them
+          modules: qtcharts qtquicktimeline qtshadertools
 
       - name: Set up MSVC (Windows only)
         if: runner.os == 'Windows'
@@ -38,9 +38,11 @@ jobs:
       - name: Install Ninja
         uses: seanmiddleditch/gha-setup-ninja@v5
 
+      # Builds the dashboard through the root CMakeLists.txt.
+      # Insight and Design Studio components are switched off in CI only:
+      # they're optional and not needed to check that the app compiles.
       - name: Configure
-        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
-
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DLINK_INSIGHT=OFF -DBUILD_QDS_COMPONENTS=OFF
       - name: Build
         run: cmake --build build
 

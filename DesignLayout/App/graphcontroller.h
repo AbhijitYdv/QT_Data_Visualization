@@ -1,6 +1,9 @@
 #ifndef GRAPHCONTROLLER_H
 #define GRAPHCONTROLLER_H
 
+#include "graphtable.h"
+
+#include <QAbstractItemModel>
 #include <QList>
 #include <QObject>
 #include <QPointF>
@@ -11,16 +14,7 @@
 #include <QVariantMap>
 #include <QVector>
 
-// Result of parsing a file on the background thread.
-struct GraphTable
-{
-    QString fileName;
-    QString error;              // non-empty if loading failed
-    QStringList headers;
-    QList<QStringList> rows;
-    QVector<int> types;         // one of the ColumnType values per column
-    int skippedLines = 0;
-};
+class DatasetHistory;
 
 // Loads a .csv/.txt table in the background, lets QML choose which
 // columns to plot, and feeds the charts.
@@ -31,6 +25,9 @@ struct GraphTable
 //    at most ~2000 points), which looks the same at screen resolution;
 //  - the bar chart groups rows into at most 50 averaged bars;
 //  - points go into the chart series in one C++ call (fillSeries).
+//
+// Every successful load is also added to `history` (last 10 datasets this
+// session). openFromHistory() brings a dataset back without re-reading the file.
 class GraphController : public QObject
 {
     Q_OBJECT
@@ -62,6 +59,10 @@ class GraphController : public QObject
     Q_PROPERTY(QString filterColumnName READ filterColumnName WRITE setFilterColumnName NOTIFY selectionChanged)
     Q_PROPERTY(QString filterValue READ filterValue WRITE setFilterValue NOTIFY selectionChanged)
 
+    // Recent datasets (a list model for the sidebar)
+    Q_PROPERTY(QAbstractItemModel *history READ history CONSTANT)
+    Q_PROPERTY(int historyCount READ historyCount NOTIFY historyCountChanged)
+
 public:
     enum ColumnType { Text = 0, Number = 1, Date = 2 };
 
@@ -69,6 +70,12 @@ public:
 
     // Starts loading in the background; returns false if a load is already running.
     Q_INVOKABLE bool loadFile(const QUrl &fileUrl);
+
+    // Re-opens a dataset from the Recent list (row 0 = newest). Replaces the
+    // current chart. Returns false while a file is still loading.
+    Q_INVOKABLE bool openFromHistory(int row);
+    Q_INVOKABLE void removeFromHistory(int row);
+    Q_INVOKABLE void clearHistory();
 
     // Puts the (thinned) points into a QML LineSeries / ScatterSeries in one go.
     Q_INVOKABLE void fillSeries(QObject *series) const;
@@ -109,6 +116,9 @@ public:
     void setFilterColumnName(const QString &name);
     void setFilterValue(const QString &value);
 
+    QAbstractItemModel *history() const;
+    int historyCount() const;
+
 signals:
     void dataLoaded();
     void graphCleared();
@@ -116,10 +126,13 @@ signals:
     void tableChanged();
     void selectionChanged();
     void loadingChanged();
+    void historyCountChanged();
 
 private:
-    void applyTable(const GraphTable &table);
+    void applyTable(const GraphTable &table, const DatasetSelection *restore = nullptr);
     void pickDefaultColumns();
+    void restoreSelection(const DatasetSelection &selection);
+    void rememberSelection();
     void refreshFilterValues();
     void rebuildPoints();
     void updateRange();
@@ -148,6 +161,9 @@ private:
 
     bool m_loading = false;
     QString m_statusMessage;
+
+    DatasetHistory *m_history = nullptr; // owned via QObject parent
+    int m_currentEntryId = -1;           // history entry shown right now
 };
 
 #endif // GRAPHCONTROLLER_H

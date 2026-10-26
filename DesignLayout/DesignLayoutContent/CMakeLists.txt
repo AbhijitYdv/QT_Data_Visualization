@@ -18,6 +18,7 @@ qt6_add_qml_module(DesignLayoutContent
         "DashboardCard.qml"
         "PluginRow.qml"
         "DatasetCard.qml"
+        "RecentDatasets.qml"
         "ColumnPicker.qml"
         "DataControls.qml"
 )

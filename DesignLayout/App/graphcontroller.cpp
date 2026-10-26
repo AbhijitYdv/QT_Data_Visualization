@@ -1,4 +1,5 @@
 #include "graphcontroller.h"
+#include "datasethistory.h"
 
 #include <QDate>
 #include <QFile>
@@ -116,6 +117,7 @@ GraphTable parseFile(const QString &path)
 {
     GraphTable table;
     table.fileName = QFileInfo(path).fileName();
+    table.filePath = QFileInfo(path).absoluteFilePath();
 
     QFile file(path);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -243,7 +245,13 @@ QList<QPointF> thinForLine(const QList<QPointF> &pts, int maxPoints)
 
 GraphController::GraphController(QObject *parent)
     : QObject(parent)
+    , m_history(new DatasetHistory(this))
 {
+    connect(m_history, &DatasetHistory::countChanged,
+            this, &GraphController::historyCountChanged);
+    // Whenever X / Y / filter change, save them on the current history entry.
+    connect(this, &GraphController::selectionChanged,
+            this, &GraphController::rememberSelection);
 }
 
 bool GraphController::loadFile(const QUrl &fileUrl)
@@ -265,17 +273,76 @@ bool GraphController::loadFile(const QUrl &fileUrl)
             setStatus(table.error);
             return;
         }
-        applyTable(table);
+
+        // Record it in history first; a re-import of the same file keeps
+        // the column choices it had last time.
+        m_currentEntryId = m_history->add(table);
+        m_history->setCurrentId(m_currentEntryId);
+
+        DatasetSelection saved;
+        if (const auto *entry = m_history->entryById(m_currentEntryId))
+            saved = entry->selection;
+        const bool hasSaved = !saved.yColumn.isEmpty();
+        applyTable(table, hasSaved ? &saved : nullptr);
     });
     watcher->setFuture(QtConcurrent::run(parseFile, path));
     return true;
 }
 
-void GraphController::applyTable(const GraphTable &table)
+bool GraphController::openFromHistory(int row)
+{
+    if (m_loading)
+        return false;
+    const DatasetHistory::Entry *entry = m_history->entryAt(row);
+    if (!entry)
+        return false;
+    if (entry->id == m_currentEntryId)
+        return true; // already showing
+
+    // Copy before applying: applyTable() writes back into the history.
+    const GraphTable table = entry->table;
+    const DatasetSelection selection = entry->selection;
+
+    m_currentEntryId = entry->id;
+    m_history->setCurrentId(m_currentEntryId);
+    applyTable(table, selection.yColumn.isEmpty() ? nullptr : &selection);
+    return true;
+}
+
+void GraphController::removeFromHistory(int row)
+{
+    const DatasetHistory::Entry *entry = m_history->entryAt(row);
+    if (!entry)
+        return;
+    // The chart on screen stays; it just isn't linked to an entry any more.
+    if (entry->id == m_currentEntryId)
+        m_currentEntryId = -1;
+    m_history->removeAt(row);
+}
+
+void GraphController::clearHistory()
+{
+    m_currentEntryId = -1;
+    m_history->clear();
+}
+
+QAbstractItemModel *GraphController::history() const
+{
+    return m_history;
+}
+
+int GraphController::historyCount() const
+{
+    return m_history->count();
+}
+
+void GraphController::applyTable(const GraphTable &table, const DatasetSelection *restore)
 {
     m_table = table;
     pickDefaultColumns();
     m_filterValue.clear();
+    if (restore)
+        restoreSelection(*restore);
     refreshFilterValues();
 
     emit tableChanged();
@@ -321,6 +388,42 @@ void GraphController::pickDefaultColumns()
             break;
         }
     }
+}
+
+// Applies saved column names on top of the defaults. Any name that no
+// longer exists (e.g. the file changed) keeps the default instead.
+void GraphController::restoreSelection(const DatasetSelection &selection)
+{
+    if (selection.xColumn == kRowNumber) {
+        m_xCol = -1;
+    } else {
+        const int col = static_cast<int>(m_table.headers.indexOf(selection.xColumn));
+        if (col >= 0 && m_table.types.value(col) != Text)
+            m_xCol = col;
+    }
+
+    const int y = static_cast<int>(m_table.headers.indexOf(selection.yColumn));
+    if (y >= 0 && m_table.types.value(y) == Number)
+        m_yCol = y;
+
+    if (selection.filterColumn == kNoFilter) {
+        m_filterCol = -1;
+    } else {
+        const int col = static_cast<int>(m_table.headers.indexOf(selection.filterColumn));
+        if (col >= 0 && m_table.types.value(col) == Text)
+            m_filterCol = col;
+    }
+
+    // refreshFilterValues() keeps this if it's still a valid value.
+    m_filterValue = selection.filterValue;
+}
+
+void GraphController::rememberSelection()
+{
+    if (m_currentEntryId < 0)
+        return;
+    m_history->setSelection(m_currentEntryId,
+                            {xColumnName(), yColumnName(), filterColumnName(), m_filterValue});
 }
 
 void GraphController::refreshFilterValues()
@@ -451,6 +554,11 @@ QVariantList GraphController::points() const
 
 void GraphController::clearGraph()
 {
+    // Clearing the chart doesn't touch the history; the entry just stops
+    // being highlighted as "current".
+    m_currentEntryId = -1;
+    m_history->setCurrentId(-1);
+
     m_table = GraphTable();
     m_xCol = m_yCol = m_filterCol = -1;
     m_filterValue.clear();
