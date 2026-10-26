@@ -1,8 +1,13 @@
-cmake_minimum_required(VERSION 3.21)
-project(HelloQt LANGUAGES CXX)
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_AUTOMOC ON)
-find_package(Qt6 REQUIRED COMPONENTS Widgets)
-qt_add_executable(HelloQt main.cpp)
-target_link_libraries(HelloQt PRIVATE Qt6::Widgets)
+# Top-level entry point for the whole repo.
+#
+# In Qt Creator, always open THIS file (File > Open File or Project >
+# QT_Data_Visualization/CMakeLists.txt). It just forwards to the real app
+# in DesignLayout/, so nobody has to pick between the nested CMakeLists files.
+#
+# The project name matches the app's own project name so the build target
+# keeps the same name (DesignLayoutApp).
+cmake_minimum_required(VERSION 3.21.1)
+
+project(DesignLayoutApp LANGUAGES CXX)
+
+add_subdirectory(DesignLayout)

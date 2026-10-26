@@ -155,6 +155,10 @@ Rectangle {
             anchors.margins: 20
             spacing: 8
 
+            RecentDatasets {
+                width: parent.width
+            }
+
             Text {
                 id: datasetHeading
                 text: qsTr("Dataset")
