@@ -42,7 +42,7 @@ jobs:
       # Insight and Design Studio components are switched off in CI only:
       # they're optional and not needed to check that the app compiles.
       - name: Configure
-        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DLINK_INSIGHT=OFF -DBUILD_QDS_COMPONENTS=OFF
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DLINK_INSIGHT=OFF
       - name: Build
         run: cmake --build build
 
