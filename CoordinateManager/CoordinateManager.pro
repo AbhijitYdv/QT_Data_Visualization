@@ -2,6 +2,8 @@ QT += widgets
 
 QT += core gui charts
 
+QT += charts
+
 CONFIG += c++17
 
 # You can make your code fail to compile if it uses deprecated APIs.
