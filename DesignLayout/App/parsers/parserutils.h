@@ -16,11 +16,20 @@ namespace Parsers {
 // One record as (column name, value) pairs, in the order they were read.
 using Record = QList<QPair<QString, QString>>;
 
-// "12", "-3.5", "1e6" -> number. Empty text is not a number.
+// "12", "-3.5", "1e6", "1,234,567" -> number. Empty text, NaN and infinity
+// are not numbers.
 bool parseNumber(const QString &text, double *value = nullptr);
 
-// 20221101, 2022-11-01 or 2022/11/01 -> milliseconds since the epoch at noon UTC.
+// Dates and timestamps -> milliseconds since the epoch, UTC:
+//   20221101, 2022-11-01, 2022/11/01           (date only: noon UTC)
+//   2016-02-08 05:46:00, 2016-02-08T05:46:00Z, 2016-02-08T05:46:00.123+02:00
+//   2/8/2016, 12/31/2016 23:30, 12/31/2016 11:30 PM  (US month/day/year)
+// Times without a zone are taken as UTC.
 bool parseDate(const QString &text, double *msecs = nullptr);
+
+// Empty, or a common "no value" marker: NA, N/A, #N/A, NaN, null, None,
+// nil, missing, -, --, ?. Such cells don't count when guessing a column's type.
+bool isMissingValue(const QString &text);
 
 // Builds a table from records that may not all have the same fields
 // (JSON objects, XML elements, GeoJSON features). Columns appear in the

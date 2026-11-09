@@ -24,6 +24,7 @@
 #include <QLocale>
 
 #include <algorithm>
+#include <limits>
 
 namespace Parsers {
 
@@ -39,8 +40,15 @@ QString scalarText(const QJsonValue &value)
     switch (value.type()) {
     case QJsonValue::Bool:
         return value.toBool() ? QStringLiteral("true") : QStringLiteral("false");
-    case QJsonValue::Double:
+    case QJsonValue::Double: {
+        // Whole numbers are kept exactly (IDs above 2^53 would lose digits as
+        // a double); everything else uses the shortest exact decimal form.
+        constexpr qint64 kNotAnInteger = std::numeric_limits<qint64>::min();
+        const qint64 whole = value.toInteger(kNotAnInteger);
+        if (whole != kNotAnInteger)
+            return QString::number(whole);
         return QString::number(value.toDouble(), 'g', QLocale::FloatingPointShortest);
+    }
     case QJsonValue::String:
         return value.toString();
     case QJsonValue::Array:

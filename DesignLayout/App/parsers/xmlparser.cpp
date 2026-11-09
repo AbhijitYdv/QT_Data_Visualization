@@ -29,6 +29,8 @@
 #include <QHash>
 #include <QXmlStreamReader>
 
+#include <algorithm>
+
 namespace Parsers {
 
 namespace {
@@ -140,6 +142,85 @@ private:
     QHash<QString, int> m_index;
 };
 
+// Excel's "XML Spreadsheet 2003" export: <Workbook><Worksheet><Table>
+// <Row><Cell><Data>. Its root element is in Excel's namespace.
+bool isExcelXml(QIODevice *device)
+{
+    device->seek(0);
+    QXmlStreamReader xml(device);
+    while (!xml.atEnd()) {
+        if (xml.readNext() == QXmlStreamReader::StartElement)
+            return xml.name() == u"Workbook"
+                   && xml.namespaceUri() == u"urn:schemas-microsoft-com:office:spreadsheet";
+    }
+    return false;
+}
+
+// Reads the first worksheet as a grid. A <Cell ss:Index="5"> skips ahead to
+// column 5. The first row is the header if it has no numbers or dates in it.
+GraphTable excelXmlTable(QIODevice *device)
+{
+    device->seek(0);
+    QXmlStreamReader xml(device);
+    QList<QStringList> rows;
+    QStringList row;
+    QString text;
+    int column = 0;
+    bool inTable = false, inData = false;
+
+    while (!xml.atEnd()) {
+        const QXmlStreamReader::TokenType token = xml.readNext();
+        const QStringView name = xml.name();
+        if (token == QXmlStreamReader::StartElement) {
+            if (name == u"Table") {
+                inTable = true;
+            } else if (inTable && name == u"Row") {
+                row.clear();
+                column = 0;
+            } else if (inTable && name == u"Cell") {
+                for (const QXmlStreamAttribute &a : xml.attributes())
+                    if (a.name() == u"Index")
+                        column = std::max(column, a.value().toInt() - 1);
+                text.clear();
+            } else if (inTable && name == u"Data") {
+                inData = true;
+            }
+        } else if (token == QXmlStreamReader::Characters && inData) {
+            text += xml.text();
+        } else if (token == QXmlStreamReader::EndElement) {
+            if (name == u"Data") {
+                inData = false;
+            } else if (inTable && name == u"Cell") {
+                if (row.size() <= column)
+                    row.resize(column + 1);
+                row[column++] = text.trimmed();
+            } else if (inTable && name == u"Row") {
+                rows << row;
+            } else if (name == u"Table") {
+                break; // first worksheet only
+            }
+        }
+    }
+    if (xml.hasError())
+        return errorTable(xmlError(xml));
+
+    GraphTable table;
+    qsizetype columns = 0;
+    for (const QStringList &r : std::as_const(rows))
+        columns = std::max(columns, r.size());
+    const bool hasHeader = rows.size() > 1
+        && std::none_of(rows.first().cbegin(), rows.first().cend(),
+                        [](const QString &f) { return parseNumber(f) || parseDate(f); });
+    if (hasHeader)
+        table.headers = rows.takeFirst();
+    table.headers.resize(columns);
+    for (qsizetype c = 0; c < columns; ++c)
+        if (table.headers.at(c).isEmpty())
+            table.headers[c] = tr("Column %1").arg(c + 1);
+    table.rows = rows;
+    return table;
+}
+
 } // namespace
 
 GraphTable parseXml(const QString &path)
@@ -147,6 +228,13 @@ GraphTable parseXml(const QString &path)
     QFile file(path);
     if (!file.open(QIODevice::ReadOnly))
         return errorTable(tr("Could not open the file"));
+
+    if (isExcelXml(&file)) {
+        GraphTable table = excelXmlTable(&file);
+        finishTable(table);
+        return table;
+    }
+    file.seek(0);
 
     QString error;
     const QString recordPath = findRecordPath(&file, &error);
