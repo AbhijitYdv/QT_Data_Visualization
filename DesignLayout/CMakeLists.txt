@@ -30,6 +30,9 @@ find_package(Qt6 6.8 REQUIRED COMPONENTS
     ShaderTools
 )
 qt_standard_project_setup()
+enable_testing()
+
+add_subdirectory(App/parsers)   # dataparsers library (+ tests)
 
 
 qt_add_executable(${CMAKE_PROJECT_NAME}
@@ -45,6 +48,7 @@ qt_add_resources(${CMAKE_PROJECT_NAME} "configuration"
 
 target_link_libraries(${CMAKE_PROJECT_NAME}
     PRIVATE
+    dataparsers
     Qt6::Concurrent
     Qt6::Widgets
     Qt6::QuickWidgets

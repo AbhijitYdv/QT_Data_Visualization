@@ -1,0 +1,115 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": 1,
+      "properties": {
+        "name": "Rowan University",
+        "population": 19000
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.1194,
+          39.7099
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 2,
+      "properties": {
+        "name": "Philadelphia",
+        "population": 1550000
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.1652,
+          39.9526
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 3,
+      "properties": {
+        "name": "Atlantic City",
+        "population": 38000
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -74.4229,
+          39.3643
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 4,
+      "properties": {
+        "name": "Trenton",
+        "population": 90000
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -74.7597,
+          40.2206
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 5,
+      "properties": {
+        "name": "Cape May",
+        "population": 2800
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -74.906,
+          38.9351
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 6,
+      "properties": {
+        "name": "Pine Barrens (rough outline)",
+        "population": null
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -74.9,
+              39.6
+            ],
+            [
+              -74.3,
+              39.6
+            ],
+            [
+              -74.3,
+              40.0
+            ],
+            [
+              -74.9,
+              40.0
+            ],
+            [
+              -74.9,
+              39.6
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

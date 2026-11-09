@@ -16,7 +16,8 @@
 
 class DatasetHistory;
 
-// Loads a .csv/.txt table in the background, lets QML choose which
+// Loads a data file (CSV, TSV, TXT, JSON, JSON Lines, GeoJSON, SQLite or XML;
+// see parsers/dataparser.h) in the background, lets QML choose which
 // columns to plot, and feeds the charts.
 //
 // Large files stay responsive because:
@@ -46,6 +47,7 @@ class GraphController : public QObject
     Q_PROPERTY(QString fileName READ fileName NOTIFY tableChanged)
     Q_PROPERTY(int rowCount READ rowCount NOTIFY tableChanged)
     Q_PROPERTY(QString statusMessage READ statusMessage NOTIFY statusChanged)
+    Q_PROPERTY(QStringList fileFilters READ fileFilters CONSTANT) // for the FileDialog
 
     // Choices for the column pickers
     Q_PROPERTY(QStringList xOptions READ xOptions NOTIFY tableChanged)
@@ -64,7 +66,11 @@ class GraphController : public QObject
     Q_PROPERTY(int historyCount READ historyCount NOTIFY historyCountChanged)
 
 public:
-    enum ColumnType { Text = 0, Number = 1, Date = 2 };
+    enum ColumnType {
+        Text = static_cast<int>(CellType::Text),
+        Number = static_cast<int>(CellType::Number),
+        Date = static_cast<int>(CellType::Date),
+    };
 
     explicit GraphController(QObject *parent = nullptr);
 
@@ -100,6 +106,7 @@ public:
     QString fileName() const { return m_table.fileName; }
     int rowCount() const { return static_cast<int>(m_table.rows.size()); }
     QString statusMessage() const { return m_statusMessage; }
+    QStringList fileFilters() const;
 
     QStringList xOptions() const;
     QStringList yOptions() const;

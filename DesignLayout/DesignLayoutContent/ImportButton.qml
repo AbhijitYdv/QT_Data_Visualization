@@ -33,10 +33,7 @@ Rectangle {
     FileDialog {
         id: fileDialog
         title: qsTr("Choose a data file")
-        nameFilters: [
-            qsTr("Data files (*.csv *.txt)"),
-            qsTr("All files (*)")
-        ]
+        nameFilters: graphController.fileFilters
         onAccepted: graphController.loadFile(selectedFile)
     }
 }

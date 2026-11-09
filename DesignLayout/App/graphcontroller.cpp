@@ -1,13 +1,11 @@
 #include "graphcontroller.h"
+#include "dataparser.h"
 #include "datasethistory.h"
+#include "parserutils.h"
 
-#include <QDate>
-#include <QFile>
 #include <QFileInfo>
 #include <QFutureWatcher>
-#include <QRegularExpression>
 #include <QSet>
-#include <QTextStream>
 #include <QXYSeries>
 #include <QtConcurrent/QtConcurrentRun>
 
@@ -20,191 +18,12 @@ const QString kRowNumber = QStringLiteral("Row #");
 const QString kNoFilter = QStringLiteral("(none)");
 
 constexpr int kMaxFilterValues = 500;
-constexpr int kTypeSampleRows = 5000;  // rows checked to guess column types
+constexpr int kTypeSampleRows = 5000;  // rows checked when picking a default filter
 constexpr int kMaxLinePoints = 2000;   // per line chart after thinning
 constexpr int kMaxBars = 50;           // bars in the bar chart
 
-// ---------------------------------------------------------------- parsing
-
-bool parseNumber(const QString &text, double *value)
-{
-    const QString t = text.trimmed();
-    if (t.isEmpty())
-        return false;
-    bool ok = false;
-    const double v = t.toDouble(&ok);
-    if (ok && value)
-        *value = v;
-    return ok;
-}
-
-// Accepts 20221101, 2022-11-01 and 2022/11/01. Returns milliseconds since
-// the epoch at 12:00 UTC (noon, so no time zone shows the previous day).
-bool parseDate(const QString &text, double *msecs)
-{
-    const QString t = text.trimmed();
-    int y = 0, m = 0, d = 0;
-    bool okY = false, okM = false, okD = false;
-
-    if (t.size() == 8) {
-        y = t.left(4).toInt(&okY);
-        m = t.mid(4, 2).toInt(&okM);
-        d = t.mid(6, 2).toInt(&okD);
-    } else if (t.size() == 10 && (t.at(4) == u'-' || t.at(4) == u'/') && t.at(7) == t.at(4)) {
-        y = t.left(4).toInt(&okY);
-        m = t.mid(5, 2).toInt(&okM);
-        d = t.mid(8, 2).toInt(&okD);
-    } else {
-        return false;
-    }
-
-    if (!okY || !okM || !okD || y < 1900 || y > 2200)
-        return false;
-    const QDate date(y, m, d);
-    if (!date.isValid())
-        return false;
-
-    if (msecs) {
-        constexpr qint64 kUnixEpochJulianDay = 2440588;
-        constexpr qint64 kMsPerDay = 86400000;
-        *msecs = static_cast<double>((date.toJulianDay() - kUnixEpochJulianDay) * kMsPerDay
-                                     + kMsPerDay / 2);
-    }
-    return true;
-}
-
-// Splits one line on a single-character delimiter, respecting "quoted, fields".
-// A null delimiter means "split on runs of whitespace".
-QStringList splitLine(const QString &line, QChar delimiter)
-{
-    if (delimiter.isNull()) {
-        static const QRegularExpression ws(QStringLiteral("\\s+"));
-        return line.split(ws, Qt::SkipEmptyParts);
-    }
-
-    QStringList fields;
-    QString field;
-    bool inQuotes = false;
-
-    for (qsizetype i = 0; i < line.size(); ++i) {
-        const QChar c = line.at(i);
-        if (inQuotes) {
-            if (c == u'"') {
-                if (i + 1 < line.size() && line.at(i + 1) == u'"') {
-                    field += u'"';
-                    ++i;
-                } else {
-                    inQuotes = false;
-                }
-            } else {
-                field += c;
-            }
-        } else if (c == u'"') {
-            inQuotes = true;
-        } else if (c == delimiter) {
-            fields << field.trimmed();
-            field.clear();
-        } else {
-            field += c;
-        }
-    }
-    fields << field.trimmed();
-    return fields;
-}
-
-// Runs on a worker thread: no QObject or UI access in here.
-GraphTable parseFile(const QString &path)
-{
-    GraphTable table;
-    table.fileName = QFileInfo(path).fileName();
-    table.filePath = QFileInfo(path).absoluteFilePath();
-
-    QFile file(path);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        table.error = QObject::tr("Could not open %1").arg(table.fileName);
-        return table;
-    }
-
-    QTextStream in(&file);
-    static const QRegularExpression anySeparator(QStringLiteral("[,;\\t]+"));
-
-    QChar delimiter; // null = whitespace
-    bool firstLine = true;
-    int columnCount = 0;
-
-    while (!in.atEnd()) {
-        const QString line = in.readLine().trimmed();
-        if (line.isEmpty() || line.startsWith(u'#'))
-            continue;
-
-        if (firstLine) {
-            firstLine = false;
-            if (line.contains(u'\t'))
-                delimiter = u'\t';
-            else if (line.contains(u','))
-                delimiter = u',';
-            else if (line.contains(u';'))
-                delimiter = u';';
-
-            const QStringList fields = splitLine(line, delimiter);
-            bool isHeader = true;
-            for (const QString &f : fields) {
-                if (parseNumber(f, nullptr) || parseDate(f, nullptr)) {
-                    isHeader = false;
-                    break;
-                }
-            }
-            columnCount = static_cast<int>(fields.size());
-            if (isHeader) {
-                table.headers = fields;
-                continue;
-            }
-            for (int c = 0; c < columnCount; ++c)
-                table.headers << QObject::tr("Column %1").arg(c + 1);
-            table.rows << fields;
-            continue;
-        }
-
-        QStringList fields = splitLine(line, delimiter);
-        if (fields.size() < 2 && columnCount >= 2)
-            fields = line.split(anySeparator, Qt::SkipEmptyParts);
-        if (fields.size() < 2 && columnCount >= 2) {
-            ++table.skippedLines;
-            continue;
-        }
-        table.rows << fields;
-    }
-
-    if (table.rows.isEmpty()) {
-        table.error = QObject::tr("No data rows found in %1").arg(table.fileName);
-        return table;
-    }
-
-    // Guess each column's type from a sample of rows (90% rule).
-    const int sample = std::min<int>(static_cast<int>(table.rows.size()), kTypeSampleRows);
-    table.types = QVector<int>(columnCount, GraphController::Text);
-    for (int c = 0; c < columnCount; ++c) {
-        int nonEmpty = 0, numbers = 0, dates = 0;
-        for (int r = 0; r < sample; ++r) {
-            const QString v = table.rows.at(r).value(c);
-            if (v.trimmed().isEmpty())
-                continue;
-            ++nonEmpty;
-            if (parseDate(v, nullptr))
-                ++dates;
-            if (parseNumber(v, nullptr))
-                ++numbers;
-        }
-        if (nonEmpty == 0)
-            continue;
-        if (dates * 10 >= nonEmpty * 9)
-            table.types[c] = GraphController::Date;
-        else if (numbers * 10 >= nonEmpty * 9)
-            table.types[c] = GraphController::Number;
-    }
-
-    return table;
-}
+using Parsers::parseDate;
+using Parsers::parseNumber;
 
 // Keeps the lowest and highest point of each bucket, in order, so peaks
 // and dips survive while the point count drops to about maxPoints.
@@ -285,7 +104,7 @@ bool GraphController::loadFile(const QUrl &fileUrl)
         const bool hasSaved = !saved.yColumn.isEmpty();
         applyTable(table, hasSaved ? &saved : nullptr);
     });
-    watcher->setFuture(QtConcurrent::run(parseFile, path));
+    watcher->setFuture(QtConcurrent::run(Parsers::parseDataFile, path));
     return true;
 }
 
@@ -324,6 +143,11 @@ void GraphController::clearHistory()
 {
     m_currentEntryId = -1;
     m_history->clear();
+}
+
+QStringList GraphController::fileFilters() const
+{
+    return Parsers::fileDialogFilters();
 }
 
 QAbstractItemModel *GraphController::history() const
