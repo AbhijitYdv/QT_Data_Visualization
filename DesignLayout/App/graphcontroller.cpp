@@ -1,8 +1,12 @@
 #include "graphcontroller.h"
+#include "chartdata.h"
 #include "dataparser.h"
 #include "datasethistory.h"
 #include "parserutils.h"
+#include "usmap/usmapdata.h"
+#include "usmap/usmapitem.h"
 
+#include <QCoreApplication>
 #include <QFileInfo>
 #include <QFutureWatcher>
 #include <QSet>
@@ -10,7 +14,9 @@
 #include <QtConcurrent/QtConcurrentRun>
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
+#include <numeric>
 
 namespace {
 
@@ -64,6 +70,7 @@ QList<QPointF> thinForLine(const QList<QPointF> &pts, int maxPoints)
 
 GraphController::GraphController(QObject *parent)
     : QObject(parent)
+    , m_tableModel(new DatasetTableModel(this))
     , m_history(new DatasetHistory(this))
 {
     connect(m_history, &DatasetHistory::countChanged,
@@ -163,34 +170,56 @@ int GraphController::historyCount() const
 void GraphController::applyTable(const GraphTable &table, const DatasetSelection *restore)
 {
     m_table = table;
+    // Row numbers from the previous dataset mean nothing for this one; the
+    // cards that refresh on the signals below must not read them.
+    m_filteredRows.clear();
+    m_yValues.clear();
     pickDefaultColumns();
     m_filterValue.clear();
     if (restore)
         restoreSelection(*restore);
     refreshFilterValues();
 
+    // The pie starts on the filter column, or else the first text column.
+    m_pieCol = m_filterCol;
+    for (int c = 0; m_pieCol < 0 && c < m_table.types.size(); ++c)
+        if (m_table.types.at(c) == Text)
+            m_pieCol = c;
+    m_histogramBins = 0;
+
     emit tableChanged();
     emit selectionChanged();
+    emit pieChanged();
+    emit mapChanged();
+    emit histogramChanged();
     rebuildPoints();
 }
 
 void GraphController::pickDefaultColumns()
 {
-    QList<int> numberCols, dateCols, textCols;
+    // Latitude/longitude go to the map; the X/Y charts use them only when
+    // there is nothing else to plot.
+    const UsMap::LatLonColumns coords = UsMap::detectLatLon(m_table);
+    m_mapLat = coords.lat;
+    m_mapLon = coords.lon;
+
+    QList<int> numberCols, coordCols, dateCols, textCols;
     for (int c = 0; c < m_table.types.size(); ++c) {
         switch (m_table.types.at(c)) {
-        case Number: numberCols << c; break;
+        case Number: (c == coords.lat || c == coords.lon ? coordCols : numberCols) << c; break;
         case Date: dateCols << c; break;
         default: textCols << c; break;
         }
     }
+    const int plainNumbers = static_cast<int>(numberCols.size());
+    numberCols << coordCols;
 
     if (!dateCols.isEmpty())
         m_xCol = dateCols.first();
-    else if (numberCols.size() >= 2)
+    else if (plainNumbers >= 2 || (plainNumbers == 0 && numberCols.size() >= 2))
         m_xCol = numberCols.first();
     else
-        m_xCol = -1;
+        m_xCol = -1; // plot against the row number
 
     m_yCol = -1;
     for (int c : std::as_const(numberCols)) {
@@ -200,14 +229,17 @@ void GraphController::pickDefaultColumns()
         }
     }
 
-    // Default filter: first text column with 2-200 distinct values (e.g. "kind").
+    // Default filter: first text column with 2-200 distinct values that repeat
+    // (e.g. "kind" or "region"). A column where nearly every row is different,
+    // such as a name or city, would filter down to a single row, so it is skipped.
     m_filterCol = -1;
     const int sample = std::min<int>(static_cast<int>(m_table.rows.size()), kTypeSampleRows);
     for (int c : std::as_const(textCols)) {
         QSet<QString> distinct;
         for (int r = 0; r < sample && distinct.size() <= 200; ++r)
             distinct.insert(m_table.rows.at(r).value(c).trimmed());
-        if (distinct.size() >= 2 && distinct.size() <= 200) {
+        const bool repeats = distinct.size() * 2 <= sample;
+        if (distinct.size() >= 2 && distinct.size() <= 200 && repeats) {
             m_filterCol = c;
             break;
         }
@@ -281,6 +313,17 @@ void GraphController::rebuildPoints()
     m_barGrouped = false;
     m_xIsDate = m_xCol >= 0 && m_table.types.value(m_xCol) == Date;
 
+    m_filteredRows.clear();
+    m_yValues.clear();
+
+    // Rows that pass the filter: shared by every card, the table included.
+    m_filteredRows.reserve(m_table.rows.size());
+    for (int r = 0; r < m_table.rows.size(); ++r) {
+        if (m_filterCol < 0 || m_table.rows.at(r).value(m_filterCol).trimmed() == m_filterValue)
+            m_filteredRows << r;
+    }
+    m_tableModel->setSource(m_table, m_filteredRows);
+
     if (m_yCol < 0) {
         updateRange();
         setStatus(tr("%1: no number column to plot on Y").arg(m_table.fileName));
@@ -288,16 +331,17 @@ void GraphController::rebuildPoints()
         return;
     }
 
-    m_points.reserve(m_table.rows.size());
+    m_points.reserve(m_filteredRows.size());
+    m_yValues.reserve(m_filteredRows.size());
     int shownRows = 0;
-    for (const QStringList &row : std::as_const(m_table.rows)) {
-        if (m_filterCol >= 0 && row.value(m_filterCol).trimmed() != m_filterValue)
-            continue;
+    for (int r : std::as_const(m_filteredRows)) {
+        const QStringList &row = m_table.rows.at(r);
         ++shownRows;
 
         double y = 0.0;
-        if (!parseNumber(row.value(m_yCol), &y))
+        if (!parseNumber(row.value(m_yCol), &y) || !std::isfinite(y))
             continue;
+        m_yValues << y; // counted even when X is missing
 
         double x = 0.0;
         if (m_xCol < 0)
@@ -391,13 +435,207 @@ void GraphController::clearGraph()
     m_linePoints.clear();
     m_barX.clear();
     m_barY.clear();
+    m_filteredRows.clear();
+    m_yValues.clear();
+    m_pieCol = -1;
+    m_mapLat = m_mapLon = -1;
+    m_tableModel->clear();
     updateRange();
 
     emit tableChanged();
+    emit pieChanged();
+    emit mapChanged();
     emit selectionChanged();
     emit graphCleared();
     emit dataLoaded();
     setStatus(QString());
+}
+
+// ------------------------------------------------- summary, histogram, pie
+
+QVariantMap GraphController::summary() const
+{
+    const ChartData::Summary s = ChartData::summarize(m_yValues);
+    return {
+        {QStringLiteral("count"), s.count},
+        {QStringLiteral("min"), s.min},
+        {QStringLiteral("max"), s.max},
+        {QStringLiteral("mean"), s.mean},
+        {QStringLiteral("median"), s.median},
+        {QStringLiteral("column"), yColumnName()},
+    };
+}
+
+int GraphController::histogramAutoBins() const
+{
+    return ChartData::defaultBinCount(static_cast<int>(m_yValues.size()));
+}
+
+void GraphController::setHistogramBins(int bins)
+{
+    bins = bins <= 0 ? 0 : std::clamp(bins, 1, 200);
+    if (bins == m_histogramBins)
+        return;
+    m_histogramBins = bins;
+    emit histogramChanged();
+}
+
+QVariantMap GraphController::histogramData() const
+{
+    const int bins = m_histogramBins > 0 ? m_histogramBins : histogramAutoBins();
+    const ChartData::Histogram h = ChartData::histogram(m_yValues, bins);
+
+    QVariantList labels, counts, edges;
+    for (int i = 0; i < h.counts.size(); ++i) {
+        labels << ChartData::binLabel(h, i);
+        counts << h.counts.at(i);
+    }
+    for (double e : h.edges)
+        edges << e;
+    return {
+        {QStringLiteral("labels"), labels},
+        {QStringLiteral("counts"), counts},
+        {QStringLiteral("edges"), edges},
+        {QStringLiteral("maxCount"), h.maxCount},
+        {QStringLiteral("bins"), static_cast<int>(h.counts.size())},
+    };
+}
+
+void GraphController::fillHistogramSeries(QObject *series) const
+{
+    auto *xy = qobject_cast<QXYSeries *>(series);
+    if (!xy)
+        return;
+    const int bins = m_histogramBins > 0 ? m_histogramBins : histogramAutoBins();
+    const ChartData::Histogram h = ChartData::histogram(m_yValues, bins);
+
+    // Each bar: up at its left edge, across, down at its right edge.
+    QList<QPointF> outline;
+    outline.reserve(h.counts.size() * 4);
+    for (int i = 0; i < h.counts.size(); ++i) {
+        const double left = h.edges.at(i), right = h.edges.at(i + 1);
+        const double gap = (right - left) * 0.06;
+        const double count = h.counts.at(i);
+        outline << QPointF(left + gap, 0) << QPointF(left + gap, count)
+                << QPointF(right - gap, count) << QPointF(right - gap, 0);
+    }
+    xy->replace(outline);
+}
+
+QStringList GraphController::pieGroupOptions() const
+{
+    QStringList options;
+    for (int c = 0; c < m_table.types.size(); ++c)
+        if (m_table.types.at(c) == Text)
+            options << m_table.headers.value(c);
+    return options;
+}
+
+QString GraphController::pieGroupColumn() const
+{
+    return m_pieCol < 0 ? QString() : m_table.headers.value(m_pieCol);
+}
+
+void GraphController::setPieGroupColumn(const QString &name)
+{
+    const int col = static_cast<int>(m_table.headers.indexOf(name));
+    if (col < 0 || col == m_pieCol || m_table.types.value(col) != Text)
+        return;
+    m_pieCol = col;
+    emit pieChanged();
+}
+
+void GraphController::setPieSumsY(bool sums)
+{
+    if (sums == m_pieSumsY)
+        return;
+    m_pieSumsY = sums;
+    emit pieChanged();
+}
+
+QVariantMap GraphController::pieData() const
+{
+    QVariantList labels, values, rows;
+    int highlight = -1;
+    const bool sums = m_pieSumsY && m_yCol >= 0;
+
+    if (m_pieCol >= 0) {
+        // Grouping by the filter column: show every group, mark the filtered one.
+        const bool byFilter = m_pieCol == m_filterCol;
+        QVector<int> source = m_filteredRows;
+        if (byFilter) {
+            source.resize(m_table.rows.size());
+            std::iota(source.begin(), source.end(), 0);
+        }
+
+        const auto groups = ChartData::groups(m_table, source, m_pieCol, sums ? m_yCol : -1);
+        for (const ChartData::Group &g : groups) {
+            const QString filterLabel = m_filterValue.isEmpty()
+                                            ? QCoreApplication::translate("ChartData", "(blank)")
+                                            : m_filterValue;
+            if (byFilter && !g.isOther && g.label == filterLabel)
+                highlight = static_cast<int>(labels.size());
+            labels << g.label;
+            values << g.value;
+            rows << g.rows;
+        }
+    }
+
+    return {
+        {QStringLiteral("labels"), labels},
+        {QStringLiteral("values"), values},
+        {QStringLiteral("rows"), rows},
+        {QStringLiteral("highlight"), highlight},
+        {QStringLiteral("valueName"), sums ? tr("Sum of %1").arg(yColumnName()) : tr("Rows")},
+    };
+}
+
+// ------------------------------------------------------------------ map
+
+void GraphController::setMapLatColumn(const QString &name)
+{
+    const int col = static_cast<int>(m_table.headers.indexOf(name));
+    if (col < 0 || col == m_mapLat || m_table.types.value(col) != Number)
+        return;
+    m_mapLat = col;
+    emit mapChanged();
+}
+
+void GraphController::setMapLonColumn(const QString &name)
+{
+    const int col = static_cast<int>(m_table.headers.indexOf(name));
+    if (col < 0 || col == m_mapLon || m_table.types.value(col) != Number)
+        return;
+    m_mapLon = col;
+    emit mapChanged();
+}
+
+void GraphController::fillMap(QObject *map)
+{
+    auto *item = qobject_cast<UsMapItem *>(map);
+    if (!item)
+        return;
+    const UsMap::Points points = UsMap::extractPoints(m_table, m_filteredRows, {m_mapLat, m_mapLon});
+    item->setPoints(points.lonLat, points.rows);
+    if (points.outside != m_mapOutside || points.missing != m_mapMissing) {
+        m_mapOutside = points.outside;
+        m_mapMissing = points.missing;
+        emit mapStatsChanged();
+    }
+}
+
+QString GraphController::rowSummary(int row) const
+{
+    if (row < 0 || row >= m_table.rows.size())
+        return {};
+    QStringList lines;
+    const QStringList &cells = m_table.rows.at(row);
+    for (int c = 0; c < m_table.headers.size() && lines.size() < 5; ++c) {
+        if (c == m_mapLat || c == m_mapLon || cells.value(c).trimmed().isEmpty())
+            continue;
+        lines << QStringLiteral("%1: %2").arg(m_table.headers.at(c), cells.value(c));
+    }
+    return lines.join(u'\n');
 }
 
 // --------------------------------------------------------------- pickers

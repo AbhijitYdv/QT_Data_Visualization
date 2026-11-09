@@ -1,0 +1,66 @@
+# Sample data for the US map: approximate city-centre coordinates and
+# approximate 2020 populations (rounded). Anchorage and Honolulu are outside
+# the lower 48 on purpose.
+city,state,region,latitude,longitude,population
+New York,NY,Northeast,40.7128,-74.0060,8804000
+Los Angeles,CA,West,34.0522,-118.2437,3899000
+Chicago,IL,Midwest,41.8781,-87.6298,2747000
+Houston,TX,South,29.7604,-95.3698,2304000
+Phoenix,AZ,West,33.4484,-112.0740,1608000
+Philadelphia,PA,Northeast,39.9526,-75.1652,1604000
+San Antonio,TX,South,29.4241,-98.4936,1434000
+San Diego,CA,West,32.7157,-117.1611,1387000
+Dallas,TX,South,32.7767,-96.7970,1304000
+Austin,TX,South,30.2672,-97.7431,962000
+Jacksonville,FL,South,30.3322,-81.6557,950000
+Columbus,OH,Midwest,39.9612,-82.9988,906000
+Charlotte,NC,South,35.2271,-80.8431,875000
+Indianapolis,IN,Midwest,39.7684,-86.1581,887000
+San Francisco,CA,West,37.7749,-122.4194,874000
+Seattle,WA,West,47.6062,-122.3321,737000
+Denver,CO,West,39.7392,-104.9903,716000
+Washington,DC,South,38.9072,-77.0369,690000
+Nashville,TN,South,36.1627,-86.7816,689000
+Oklahoma City,OK,South,35.4676,-97.5164,681000
+Boston,MA,Northeast,42.3601,-71.0589,676000
+Portland,OR,West,45.5152,-122.6784,652000
+Las Vegas,NV,West,36.1699,-115.1398,642000
+Detroit,MI,Midwest,42.3314,-83.0458,639000
+Memphis,TN,South,35.1495,-90.0490,633000
+Louisville,KY,South,38.2527,-85.7585,624000
+Baltimore,MD,South,39.2904,-76.6122,586000
+Milwaukee,WI,Midwest,43.0389,-87.9065,577000
+Albuquerque,NM,West,35.0844,-106.6504,564000
+Tucson,AZ,West,32.2226,-110.9747,543000
+Kansas City,MO,Midwest,39.0997,-94.5786,508000
+Atlanta,GA,South,33.7490,-84.3880,499000
+Omaha,NE,Midwest,41.2565,-95.9345,486000
+Raleigh,NC,South,35.7796,-78.6382,468000
+Miami,FL,South,25.7617,-80.1918,442000
+Minneapolis,MN,Midwest,44.9778,-93.2650,430000
+New Orleans,LA,South,29.9511,-90.0715,384000
+Cleveland,OH,Midwest,41.4993,-81.6944,373000
+Salt Lake City,UT,West,40.7608,-111.8910,200000
+Boise,ID,West,43.6150,-116.2023,236000
+Billings,MT,West,45.7833,-108.5007,117000
+Fargo,ND,Midwest,46.8772,-96.7898,126000
+Sioux Falls,SD,Midwest,43.5446,-96.7311,193000
+Cheyenne,WY,West,41.1400,-104.8202,65000
+Des Moines,IA,Midwest,41.5868,-93.6250,214000
+Little Rock,AR,South,34.7465,-92.2896,203000
+Jackson,MS,South,32.2988,-90.1848,153000
+Birmingham,AL,South,33.5186,-86.8104,200000
+Charleston,SC,South,32.7765,-79.9311,150000
+Richmond,VA,South,37.5407,-77.4360,226000
+Pittsburgh,PA,Northeast,40.4406,-79.9959,303000
+Buffalo,NY,Northeast,42.8864,-78.8784,278000
+Portland,ME,Northeast,43.6591,-70.2568,68000
+Burlington,VT,Northeast,44.4759,-73.2121,45000
+Hartford,CT,Northeast,41.7658,-72.6734,121000
+Providence,RI,Northeast,41.8240,-71.4128,190000
+Newark,NJ,Northeast,40.7357,-74.1724,311000
+Glassboro,NJ,Northeast,39.7029,-75.1118,23000
+Wilmington,DE,South,39.7391,-75.5398,70000
+Charleston,WV,South,38.3498,-81.6326,48000
+Anchorage,AK,West,61.2181,-149.9003,291000
+Honolulu,HI,West,21.3069,-157.8583,350000

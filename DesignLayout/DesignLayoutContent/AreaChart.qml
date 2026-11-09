@@ -1,8 +1,8 @@
 import QtQuick
 import QtCharts
 
-// Simple line graph: plain orange line, no markers, no grid.
-// Uses a date axis when the X column holds dates.
+// Area chart: the same X/Y data as the line chart, filled down to the
+// bottom of the plot. Uses a date axis when the X column holds dates.
 ChartView {
     id: chart
     anchors.fill: parent
@@ -25,7 +25,7 @@ ChartView {
         labelFormat: "%g"
         labelsColor: "#8a9399"
         labelsFont.pixelSize: 10
-        gridVisible: false
+        gridLineColor: "#262c30"
         color: "#2a3034"
     }
 
@@ -38,38 +38,45 @@ ChartView {
         tickCount: 6
         labelsColor: "#8a9399"
         labelsFont.pixelSize: 10
-        gridVisible: false
+        gridLineColor: "#262c30"
         color: "#2a3034"
     }
 
     ValueAxis {
         id: axisY
-        min: graphController.minY
+        // Start at 0 so the filled area means something, unless the data
+        // itself goes negative (minY is padded, so use the real minimum).
+        min: graphController.summary.count > 0 && graphController.summary.min < 0
+             ? graphController.minY : 0
         max: graphController.maxY
         tickCount: 6
         labelFormat: "%g"
         labelsColor: "#8a9399"
         labelsFont.pixelSize: 10
-        gridVisible: false
+        gridLineColor: "#262c30"
         color: "#2a3034"
     }
 
-    LineSeries {
-        id: valueSeries
+    AreaSeries {
+        id: valueArea
         axisX: axisX
         axisY: axisY
         visible: !graphController.xIsDate
-        color: "#c0874f"
-        width: 2
+        color: "#404f9a86"       // teal at 25% opacity
+        borderColor: "#4f9a86"
+        borderWidth: 2
+        upperSeries: LineSeries { id: valueLine }
     }
 
-    LineSeries {
-        id: dateSeries
+    AreaSeries {
+        id: dateArea
         axisX: dateAxisX
         axisY: axisY
         visible: graphController.xIsDate
-        color: "#c0874f"
-        width: 2
+        color: "#404f9a86"
+        borderColor: "#4f9a86"
+        borderWidth: 2
+        upperSeries: LineSeries { id: dateLine }
     }
 
     Text {
@@ -82,10 +89,10 @@ ChartView {
     }
 
     function reload() {
-        valueSeries.clear()
-        dateSeries.clear()
-        // One C++ call fills the series with the thinned points.
-        graphController.fillSeries(graphController.xIsDate ? dateSeries : valueSeries)
+        valueLine.clear()
+        dateLine.clear()
+        // Same thinned points as the line chart, in one C++ call.
+        graphController.fillSeries(graphController.xIsDate ? dateLine : valueLine)
     }
 
     Connections {
