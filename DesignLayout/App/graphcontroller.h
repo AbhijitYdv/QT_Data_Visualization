@@ -111,6 +111,9 @@ public:
     // Puts the (thinned) points into a QML LineSeries / ScatterSeries in one go.
     Q_INVOKABLE void fillSeries(QObject *series) const;
 
+    // Scatter plots: every point, or an even sample of maxPoints of them.
+    Q_INVOKABLE void fillScatterSeries(QObject *series, int maxPoints = 5000) const;
+
     // Bar chart data: { "x": [...], "y": [...], "grouped": bool }, at most 50 bars.
     Q_INVOKABLE QVariantMap barData() const;
 

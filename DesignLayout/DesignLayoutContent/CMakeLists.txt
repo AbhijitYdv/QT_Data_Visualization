@@ -26,4 +26,5 @@ qt6_add_qml_module(DesignLayoutContent
         "PieChart.qml"
         "DataTable.qml"
         "UsMap.qml"
+        "ScatterPlot.qml"
 )
