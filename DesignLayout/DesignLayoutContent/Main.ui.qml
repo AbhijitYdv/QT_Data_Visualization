@@ -25,6 +25,7 @@ Rectangle {
                                        + (areaPlugin.checked ? 1 : 0)
                                        + (histogramPlugin.checked ? 1 : 0)
                                        + (piePlugin.checked ? 1 : 0)
+                                       + (scatterPlugin.checked ? 1 : 0)
     readonly property int chartsShown: otherCharts + (mapOn ? 1 : 0)
     readonly property int maxCharts: mapOn ? 2 : 4
     readonly property bool chartsFull: chartsShown >= maxCharts
@@ -174,6 +175,14 @@ Rectangle {
                     locked: root.chartsFull
                     text: qsTr("Pie chart")
                     checked: true
+                }
+
+                PluginRow {
+                    id: scatterPlugin
+                    width: parent.width
+                    locked: root.chartsFull
+                    text: qsTr("Scatter plot")
+                    checked: false
                 }
 
                 PluginRow {
@@ -393,6 +402,20 @@ Rectangle {
 
                     PieChart {
                         id: pieChart
+                    }
+                }
+
+                DashboardCard {
+                    id: scatterCard
+                    title: qsTr("Scatter plot")
+                    tag: "scatter"
+                    visible: scatterPlugin.checked
+                    Layout.fillWidth: true
+                    Layout.preferredWidth: 100
+                    Layout.preferredHeight: root.cardHeight
+
+                    ScatterPlot {
+                        id: scatterPlot
                     }
                 }
 

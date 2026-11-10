@@ -402,6 +402,24 @@ void GraphController::fillSeries(QObject *series) const
         xy->replace(m_linePoints); // one call, one repaint
 }
 
+void GraphController::fillScatterSeries(QObject *series, int maxPoints) const
+{
+    auto *xy = qobject_cast<QXYSeries *>(series);
+    if (!xy)
+        return;
+    if (maxPoints <= 0 || m_points.size() <= maxPoints) {
+        xy->replace(m_points);
+        return;
+    }
+    // Every n-th point keeps the shape of the cloud without hiding the middle.
+    QList<QPointF> sample;
+    sample.reserve(maxPoints);
+    const double step = static_cast<double>(m_points.size()) / maxPoints;
+    for (int i = 0; i < maxPoints; ++i)
+        sample << m_points.at(static_cast<qsizetype>(i * step));
+    xy->replace(sample);
+}
+
 QVariantMap GraphController::barData() const
 {
     return {
