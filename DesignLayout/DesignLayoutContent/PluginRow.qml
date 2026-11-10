@@ -1,10 +1,16 @@
 import QtQuick
 
 // One selectable row in the sidebar "Plugins" list. Click to toggle.
+// While `locked` is true the row can be turned off but not on (used for the
+// limit on how many charts the dashboard shows at once).
 Rectangle {
     id: root
     property string text
     property bool checked: false
+    property bool locked: false
+
+    readonly property bool blocked: locked && !checked
+    opacity: blocked ? 0.45 : 1
 
     width: 200
     height: 36
@@ -36,7 +42,10 @@ Rectangle {
         id: mouse
         anchors.fill: parent
         hoverEnabled: true
-        cursorShape: Qt.PointingHandCursor
-        onClicked: root.checked = !root.checked
+        cursorShape: root.blocked ? Qt.ForbiddenCursor : Qt.PointingHandCursor
+        onClicked: {
+            if (!root.blocked)
+                root.checked = !root.checked
+        }
     }
 }

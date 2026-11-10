@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<inventory store="Glassboro">
+  <item sku="A100">
+    <name>Resistor pack</name>
+    <qty>120</qty>
+    <price currency="USD">4.99</price>
+    <received>2026-10-03</received>
+  </item>
+  <item sku="A200">
+    <name>Capacitor kit</name>
+    <qty>45</qty>
+    <price currency="USD">12.5</price>
+    <received>2026-10-05</received>
+  </item>
+  <item sku="B310">
+    <name>Breadboard</name>
+    <qty>30</qty>
+    <price currency="USD">7.25</price>
+    <received>2026-10-09</received>
+  </item>
+  <item sku="C020">
+    <name>Jumper wires</name>
+    <qty>200</qty>
+    <price currency="USD">3.1</price>
+    <received>2026-10-12</received>
+  </item>
+  <item sku="D777">
+    <name>Multimeter</name>
+    <qty>8</qty>
+    <price currency="USD">39.9</price>
+    <received>2026-10-20</received>
+  </item>
+</inventory>

@@ -1,0 +1,74 @@
+[
+  {
+    "date": "2026-01-01",
+    "region": "South",
+    "units": 87,
+    "revenue": 1696.5
+  },
+  {
+    "date": "2026-02-01",
+    "region": "East",
+    "units": 88,
+    "revenue": 1716.0
+  },
+  {
+    "date": "2026-03-01",
+    "region": "West",
+    "units": 103,
+    "revenue": 2008.5
+  },
+  {
+    "date": "2026-04-01",
+    "region": "North",
+    "units": 118,
+    "revenue": 2301.0
+  },
+  {
+    "date": "2026-05-01",
+    "region": "South",
+    "units": 106,
+    "revenue": 2067.0
+  },
+  {
+    "date": "2026-06-01",
+    "region": "East",
+    "units": 114,
+    "revenue": 2223.0
+  },
+  {
+    "date": "2026-07-01",
+    "region": "West",
+    "units": 136,
+    "revenue": 2652.0
+  },
+  {
+    "date": "2026-08-01",
+    "region": "North",
+    "units": 129,
+    "revenue": 2515.5
+  },
+  {
+    "date": "2026-09-01",
+    "region": "South",
+    "units": 144,
+    "revenue": 2808.0
+  },
+  {
+    "date": "2026-10-01",
+    "region": "East",
+    "units": 158,
+    "revenue": 3081.0
+  },
+  {
+    "date": "2026-11-01",
+    "region": "West",
+    "units": 148,
+    "revenue": 2886.0
+  },
+  {
+    "date": "2026-12-01",
+    "region": "North",
+    "units": 170,
+    "revenue": 3315.0
+  }
+]

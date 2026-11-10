@@ -10,4 +10,6 @@ cmake_minimum_required(VERSION 3.21.1)
 
 project(DesignLayoutApp LANGUAGES CXX)
 
+enable_testing()   # lets `ctest` in the build folder run the parser tests
+
 add_subdirectory(DesignLayout)

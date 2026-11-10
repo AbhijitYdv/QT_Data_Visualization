@@ -26,16 +26,23 @@ find_package(Qt6 6.8 REQUIRED COMPONENTS
     Quick
     QuickWidgets
     Charts
+    Sql
     QuickTimeline
     ShaderTools
 )
 qt_standard_project_setup()
+enable_testing()
+
+add_subdirectory(App/parsers)   # dataparsers library (+ tests)
+add_subdirectory(App/chartdata) # chart calculations + table model (+ tests)
+add_subdirectory(App/usmap)     # US map projection, outlines, lat/lon (+ tests)
 
 
 qt_add_executable(${CMAKE_PROJECT_NAME}
     App/graphcontroller.h App/graphcontroller.cpp
         App/graphtable.h
         App/datasethistory.h App/datasethistory.cpp
+        App/usmap/usmapitem.h App/usmap/usmapitem.cpp
 
 )
 qt_add_resources(${CMAKE_PROJECT_NAME} "configuration"
@@ -45,6 +52,9 @@ qt_add_resources(${CMAKE_PROJECT_NAME} "configuration"
 
 target_link_libraries(${CMAKE_PROJECT_NAME}
     PRIVATE
+    dataparsers
+    chartdata
+    usmap
     Qt6::Concurrent
     Qt6::Widgets
     Qt6::QuickWidgets
