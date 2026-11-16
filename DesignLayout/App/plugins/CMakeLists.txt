@@ -1,8 +1,10 @@
 # Plugin system.
 #  pluginapi  - header-only interfaces; every chart plugin links only this.
 #  pluginhost - PluginManager; only the app links this.
+#  datascope_add_plugin() (cmake/DataScopePlugin.cmake) builds a chart plugin.
 
 find_package(Qt6 REQUIRED COMPONENTS Core)
+include(DataScopePlugin)
 
 add_library(pluginapi INTERFACE)
 target_include_directories(pluginapi INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
