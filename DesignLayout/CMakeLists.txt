@@ -36,7 +36,7 @@ enable_testing()
 add_subdirectory(App/parsers)   # dataparsers library (+ tests)
 add_subdirectory(App/chartdata) # chart calculations + table model (+ tests)
 add_subdirectory(App/usmap)     # US map projection, outlines, lat/lon (+ tests)
-
+add_subdirectory(App/plugins/)  # plugin API (+ tests)
 
 qt_add_executable(${CMAKE_PROJECT_NAME}
     App/graphcontroller.h App/graphcontroller.cpp
