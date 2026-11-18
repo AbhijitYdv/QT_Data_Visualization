@@ -56,6 +56,7 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     dataparsers
     chartdata
     usmap
+    pluginhost
     Qt6::Concurrent
     Qt6::Widgets
     Qt6::QuickWidgets

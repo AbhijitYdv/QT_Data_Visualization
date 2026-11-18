@@ -12,7 +12,7 @@ set(FIXTURE_DIR ${CMAKE_CURRENT_BINARY_DIR}/fixture_plugins)
 add_subdirectory(testplugin)
 
 qt_add_executable(tst_pluginmanager tst_pluginmanager.cpp)
-target_link_libraries(tst_pluginmanager PRIVATE pluginhost Qt6::Test)
+target_link_libraries(tst_pluginmanager PRIVATE pluginhost Qt6::Test Qt6::Gui)
 target_compile_definitions(tst_pluginmanager PRIVATE
     FIXTURE_DIR="${FIXTURE_DIR}")
 add_dependencies(tst_pluginmanager good_plugin dup_plugin wrongiid_plugin)

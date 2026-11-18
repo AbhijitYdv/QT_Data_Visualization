@@ -27,4 +27,5 @@ qt6_add_qml_module(DesignLayoutContent
         "DataTable.qml"
         "UsMap.qml"
         "ScatterPlot.qml"
+        "PluginView.qml"
 )

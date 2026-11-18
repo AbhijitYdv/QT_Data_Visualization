@@ -358,8 +358,10 @@ Rectangle {
                     Layout.preferredWidth: 100
                     Layout.preferredHeight: root.cardHeight
 
-                    BarGraph {
+                    // Drawn by the bar chart plugin (plugins/barchart)
+                    PluginView {
                         id: barGraph
+                        pluginId: "core.viz.bar"
                     }
                 }
 

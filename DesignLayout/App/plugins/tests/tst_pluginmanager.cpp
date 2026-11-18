@@ -4,6 +4,7 @@
 #include <QDir>
 #include <QFile>
 #include <QSignalSpy>
+#include <QStandardItemModel>
 #include <QTemporaryDir>
 #include <QtTest>
 
@@ -45,6 +46,19 @@ private slots:
         QObject parent;
         QObject *backend = viz->createBackend(nullptr, &parent);
         QCOMPARE(backend->parent(), &parent);
+    }
+
+    void createBackendForQml()
+    {
+        PluginManager pm;
+        pm.loadFrom(FIXTURE_DIR);
+        QStandardItemModel model(2, 2);
+        QObject parent;
+        QObject *backend = pm.createBackend("test.viz.good", &model, &parent);
+        QVERIFY(backend);
+        QCOMPARE(backend->parent(), &parent);
+        QVERIFY(!pm.createBackend("nope", &model, &parent));
+        QVERIFY(!pm.createBackend("test.viz.good", &parent, &parent)); // not a model
     }
 
     void qmlListHasFields()

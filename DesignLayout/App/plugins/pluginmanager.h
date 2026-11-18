@@ -50,6 +50,12 @@ public:
     Q_INVOKABLE QVariantMap defaultConfig(const QString &id) const;
     Q_INVOKABLE bool has(const QString &id) const { return m_byId.contains(id); }
 
+    // Asks plugin `id` for its backend. `model` must be a QAbstractItemModel
+    // (e.g. graphController.tableModel). The backend is owned by `parent`
+    // (pass the view item from QML so it is deleted with the view).
+    // Returns null if the plugin is missing or the model is not a model.
+    Q_INVOKABLE QObject *createBackend(const QString &id, QObject *model, QObject *parent);
+
     QVariantList pluginList() const;
     int count() const { return static_cast<int>(m_visualizations.size()); }
     QStringList errors() const { return m_errors; } // "path: reason", for logs/tests

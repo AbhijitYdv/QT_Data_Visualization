@@ -152,6 +152,16 @@ QVariantMap PluginManager::defaultConfig(const QString &id) const
     return viz ? viz->defaultConfig() : QVariantMap();
 }
 
+QObject *PluginManager::createBackend(const QString &id, QObject *model, QObject *parent)
+{
+    IVisualizationPlugin *viz = visualization(id);
+    auto *itemModel = qobject_cast<QAbstractItemModel *>(model);
+    if (!viz || !itemModel)
+        return nullptr;
+    // A parent keeps the QML engine from garbage-collecting the backend.
+    return viz->createBackend(itemModel, parent ? parent : this);
+}
+
 QVariantList PluginManager::pluginList() const
 {
     QVariantList list;
