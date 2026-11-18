@@ -33,10 +33,11 @@ find_package(Qt6 6.8 REQUIRED COMPONENTS
 qt_standard_project_setup()
 enable_testing()
 
-add_subdirectory(App/parsers)   # dataparsers library (+ tests)
-add_subdirectory(App/chartdata) # chart calculations + table model (+ tests)
-add_subdirectory(App/usmap)     # US map projection, outlines, lat/lon (+ tests)
-add_subdirectory(App/plugins/)  # plugin API (+ tests)
+add_subdirectory(App/parsers)        # dataparsers library (+ tests)
+add_subdirectory(App/chartdata)      # chart calculations + table model (+ tests)
+add_subdirectory(App/usmap)          # US map projection, outlines, lat/lon (+ tests)
+add_subdirectory(App/plugins/)       # plugin API (+ tests)
+
 
 qt_add_executable(${CMAKE_PROJECT_NAME}
     App/graphcontroller.h App/graphcontroller.cpp
@@ -60,7 +61,7 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     Qt6::QuickWidgets
     Qt6::Charts
 )
-
+add_subdirectory(plugins/barchart)   # chart plugins (after qt_add_executable)
 include(qds)
 
 if (BUILD_QDS_COMPONENTS)

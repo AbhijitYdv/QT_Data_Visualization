@@ -17,8 +17,14 @@ class DatasetTableModel : public QAbstractTableModel
     Q_PROPERTY(int count READ count NOTIFY countChanged) // rows shown
 
 public:
+    // Roles are also published by name (roleNames), so chart plugins can
+    // look them up without including this header.
     enum Roles {
         NumericRole = Qt::UserRole + 1, // true for number and date columns (right-aligned)
+        ValueRole,                      // "value": the cell as a double (dates: ms since epoch),
+                                        //          invalid QVariant if it doesn't parse
+        SourceRowRole,                  // "sourceRow": row number in the file (stable across sorting)
+        ColumnTypeRole,                 // "columnType": headerData only, CellType as int
     };
 
     explicit DatasetTableModel(QObject *parent = nullptr);
