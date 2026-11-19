@@ -1,7 +1,13 @@
-# Code shared by the X/Y chart plugins (bar, line, area, scatter).
-# Static, so each plugin carries its own copy and stays a single file.
+# Code shared by the chart plugins.
+#  modelaccess - header-only helpers for reading the dataset model by role name
+#  xyplot      - X/Y backend (bar, line, area, scatter). Static, so each plugin
+#                carries its own copy and stays a single file.
 
 find_package(Qt6 REQUIRED COMPONENTS Core Charts)
+
+add_library(modelaccess INTERFACE)
+target_include_directories(modelaccess INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(modelaccess INTERFACE Qt6::Core)
 
 qt_add_library(xyplot STATIC
     xybackend.h xybackend.cpp

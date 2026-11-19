@@ -85,6 +85,9 @@ class GraphController : public QObject
 
     // Data table: the filtered rows, sortable by column
     Q_PROPERTY(DatasetTableModel *tableModel READ tableModel CONSTANT)
+    // Every row, ignoring the filter (the pie uses it to show all groups
+    // when it groups by the filter column)
+    Q_PROPERTY(DatasetTableModel *allRowsModel READ allRowsModel CONSTANT)
 
     // Recent datasets (a list model for the sidebar)
     Q_PROPERTY(QAbstractItemModel *history READ history CONSTANT)
@@ -179,6 +182,7 @@ public:
     bool pieSumsY() const { return m_pieSumsY; }
     void setPieSumsY(bool sums);
     DatasetTableModel *tableModel() const { return m_tableModel; }
+    DatasetTableModel *allRowsModel() const { return m_allRowsModel; }
     QString mapLatColumn() const { return m_table.headers.value(m_mapLat); }
     QString mapLonColumn() const { return m_table.headers.value(m_mapLon); }
     void setMapLatColumn(const QString &name);
@@ -228,6 +232,7 @@ private:
     int m_pieCol = -1;            // text column the pie groups by
     bool m_pieSumsY = false;
     DatasetTableModel *m_tableModel = nullptr; // owned via QObject parent
+    DatasetTableModel *m_allRowsModel = nullptr; // owned via QObject parent
     int m_mapLat = -1;            // latitude column
     int m_mapLon = -1;            // longitude column
     int m_mapOutside = 0;         // rows outside the lower 48

@@ -56,6 +56,24 @@ class TestChartData : public QObject
     Q_OBJECT
 
 private slots:
+    void groupsFromLabels()
+    {
+        // Same rules as the table version: blanks, NaN values, largest first.
+        const QStringList labels{"a", "b", "a", " ", "b", "a"};
+        const auto counts = ChartData::groups(labels, {});
+        QCOMPARE(counts.size(), 3);
+        QCOMPARE(counts.at(0).label, QString("a"));
+        QCOMPARE(counts.at(0).value, 3.0);
+        QCOMPARE(counts.at(2).label, QString("(blank)"));
+
+        const double nan = std::numeric_limits<double>::quiet_NaN();
+        const auto sums = ChartData::groups(labels, {1, 10, 2, 5, nan, 3});
+        QCOMPARE(sums.at(0).label, QString("b"));   // 10 (+ NaN ignored)
+        QCOMPARE(sums.at(0).value, 10.0);
+        QCOMPARE(sums.at(0).rows, 2);               // NaN row still counted
+        QVERIFY(ChartData::groups(labels, {1, 2}).isEmpty()); // size mismatch
+    }
+
     // ------------------------------------------------------------ summary
 
     void summaryOddAndEven()

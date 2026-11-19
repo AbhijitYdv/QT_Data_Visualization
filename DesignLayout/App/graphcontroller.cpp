@@ -71,6 +71,7 @@ QList<QPointF> thinForLine(const QList<QPointF> &pts, int maxPoints)
 GraphController::GraphController(QObject *parent)
     : QObject(parent)
     , m_tableModel(new DatasetTableModel(this))
+    , m_allRowsModel(new DatasetTableModel(this))
     , m_history(new DatasetHistory(this))
 {
     connect(m_history, &DatasetHistory::countChanged,
@@ -186,6 +187,10 @@ void GraphController::applyTable(const GraphTable &table, const DatasetSelection
         if (m_table.types.at(c) == Text)
             m_pieCol = c;
     m_histogramBins = 0;
+
+    QVector<int> allRows(m_table.rows.size());
+    std::iota(allRows.begin(), allRows.end(), 0);
+    m_allRowsModel->setSource(m_table, allRows);
 
     emit tableChanged();
     emit selectionChanged();
@@ -458,6 +463,7 @@ void GraphController::clearGraph()
     m_pieCol = -1;
     m_mapLat = m_mapLon = -1;
     m_tableModel->clear();
+    m_allRowsModel->clear();
     updateRange();
 
     emit tableChanged();

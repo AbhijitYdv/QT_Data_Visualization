@@ -5,6 +5,7 @@
 #include <QHash>
 
 #include <algorithm>
+#include <limits>
 #include <cmath>
 #include <numeric>
 
@@ -82,15 +83,38 @@ QVector<Group> groups(const GraphTable &table, const QVector<int> &rows,
     if (groupColumn < 0 || groupColumn >= table.headers.size())
         return {};
 
-    const QString blank = QCoreApplication::translate("ChartData", "(blank)");
-    QHash<QString, int> indexOf;
-    QVector<Group> all;
+    QStringList labels;
+    QVector<double> values;
+    labels.reserve(rows.size());
+    if (valueColumn >= 0)
+        values.reserve(rows.size());
 
     for (int r : rows) {
         if (r < 0 || r >= table.rows.size())
             continue;
         const QStringList &row = table.rows.at(r);
-        QString label = row.value(groupColumn).trimmed();
+        labels << row.value(groupColumn);
+        if (valueColumn >= 0) {
+            double v = 0.0;
+            values << (Parsers::parseNumber(row.value(valueColumn), &v)
+                           ? v : std::numeric_limits<double>::quiet_NaN());
+        }
+    }
+    return groups(labels, values, maxGroups);
+}
+
+QVector<Group> groups(const QStringList &labels, const QVector<double> &values, int maxGroups)
+{
+    const bool counting = values.isEmpty();
+    if (!counting && values.size() != labels.size())
+        return {};
+
+    const QString blank = QCoreApplication::translate("ChartData", "(blank)");
+    QHash<QString, int> indexOf;
+    QVector<Group> all;
+
+    for (qsizetype i = 0; i < labels.size(); ++i) {
+        QString label = labels.at(i).trimmed();
         if (label.isEmpty())
             label = blank;
 
@@ -106,13 +130,10 @@ QVector<Group> groups(const GraphTable &table, const QVector<int> &rows,
 
         Group &group = all[g];
         ++group.rows;
-        if (valueColumn < 0) {
+        if (counting)
             group.value += 1.0;
-        } else {
-            double v = 0.0;
-            if (Parsers::parseNumber(row.value(valueColumn), &v))
-                group.value += v;
-        }
+        else if (!std::isnan(values.at(i)))
+            group.value += values.at(i);
     }
 
     all.removeIf([](const Group &g) { return !(g.value > 0.0); });

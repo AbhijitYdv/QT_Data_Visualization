@@ -6,7 +6,8 @@ import QtQuick
 // Loads the plugin's own QML (qrc:/plugins/...), creates its backend on
 // graphController.tableModel (the filtered rows), and hands it to the view
 // as `backend`. Backends that have xColumn / yColumn follow the sidebar's
-// column pickers. If the plugin isn't installed, says so instead.
+// column pickers; allRowsModel / filterColumn / filterValue are filled in
+// too when a backend has them. If the plugin isn't installed, says so instead.
 Item {
     id: root
     property string pluginId
@@ -31,6 +32,13 @@ Item {
                     b.xColumn = Qt.binding(() => graphController.xColumnName)
                 if ("yColumn" in b)
                     b.yColumn = Qt.binding(() => graphController.yColumnName)
+                // Optional extras, for plugins that want them (the pie):
+                if ("allRowsModel" in b)
+                    b.allRowsModel = graphController.allRowsModel
+                if ("filterColumn" in b)
+                    b.filterColumn = Qt.binding(() => graphController.filterColumnName)
+                if ("filterValue" in b)
+                    b.filterValue = Qt.binding(() => graphController.filterValue)
             }
             root.backend = b
             item.backend = b

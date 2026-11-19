@@ -330,8 +330,9 @@ Rectangle {
                     Layout.preferredWidth: 100
                     Layout.preferredHeight: root.cardHeight
 
-                    UsMap {
+                    PluginView {
                         id: usMap
+                        pluginId: "core.viz.usmap"
                     }
                 }
 
@@ -389,8 +390,9 @@ Rectangle {
                     Layout.preferredWidth: 100
                     Layout.preferredHeight: root.cardHeight
 
-                    Histogram {
+                    PluginView {
                         id: histogram
+                        pluginId: "core.viz.histogram"
                     }
                 }
 
@@ -403,8 +405,9 @@ Rectangle {
                     Layout.preferredWidth: 100
                     Layout.preferredHeight: root.cardHeight
 
-                    PieChart {
+                    PluginView {
                         id: pieChart
+                        pluginId: "core.viz.pie"
                     }
                 }
 
