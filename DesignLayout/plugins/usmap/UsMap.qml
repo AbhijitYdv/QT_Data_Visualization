@@ -1,16 +1,20 @@
 import QtQuick
-import DataScope.Maps
+import DataScope.MapPlugin
 
 // US map: one dot per filtered row at its latitude/longitude, drawn by the
-// C++ UsMapItem (QPainter). The lat/lon columns are found automatically and
+// C++ UsMapView (QPainter, in this plugin). The lat/lon columns are found automatically and
 // can be changed with the two pickers. Hover a dot to see its row, or a
 // state to see its name.
+// The dashboard sets `backend` (a MapBackend) when it loads this file.
 Item {
     id: root
     anchors.fill: parent
 
+    property QtObject backend
+
     function reload() {
-        graphController.fillMap(map)
+        if (root.backend)
+            root.backend.fillMap(map)
     }
 
     Row {
@@ -19,22 +23,22 @@ Item {
         anchors.left: parent.left
         anchors.margins: 8
         spacing: 12
-        visible: graphController.yOptions.length > 0
+        visible: root.backend && root.backend.numberColumns.length > 0
 
         ColumnPicker {
             width: 150
             label: qsTr("Latitude")
-            options: graphController.yOptions
-            current: graphController.mapLatColumn
-            onPicked: function(value) { graphController.mapLatColumn = value }
+            options: root.backend ? root.backend.numberColumns : []
+            current: root.backend ? root.backend.latColumn : ""
+            onPicked: function(value) { root.backend.latColumn = value }
         }
 
         ColumnPicker {
             width: 150
             label: qsTr("Longitude")
-            options: graphController.yOptions
-            current: graphController.mapLonColumn
-            onPicked: function(value) { graphController.mapLonColumn = value }
+            options: root.backend ? root.backend.numberColumns : []
+            current: root.backend ? root.backend.lonColumn : ""
+            onPicked: function(value) { root.backend.lonColumn = value }
         }
     }
 
@@ -44,17 +48,19 @@ Item {
         anchors.bottom: pickers.bottom
         anchors.rightMargin: 12
         anchors.bottomMargin: 6
-        visible: graphController.mapHasCoordinates && map.pointCount + graphController.mapOutside > 0
-        text: qsTr("%1 on the map").arg(map.pointCount)
-              + (graphController.mapOutside > 0
-                 ? qsTr(" · %1 outside the lower 48").arg(graphController.mapOutside) : "")
-              + (graphController.mapMissing > 0
-                 ? qsTr(" · %1 without coordinates").arg(graphController.mapMissing) : "")
+        visible: root.backend && root.backend.hasCoordinates
+                 && map.pointCount + root.backend.outside > 0
+        text: !root.backend ? ""
+              : qsTr("%1 on the map").arg(map.pointCount)
+                + (root.backend.outside > 0
+                   ? qsTr(" · %1 outside the lower 48").arg(root.backend.outside) : "")
+                + (root.backend.missing > 0
+                   ? qsTr(" · %1 without coordinates").arg(root.backend.missing) : "")
         color: "#8a9399"
         font.pixelSize: 11
     }
 
-    UsMapItem {
+    UsMapView {
         id: map
         anchors.top: pickers.visible ? pickers.bottom : parent.top
         anchors.left: parent.left
@@ -66,8 +72,8 @@ Item {
     // Tooltip: the hovered row, or the hovered state's name
     Rectangle {
         id: tip
-        readonly property string body: map.hoveredRow >= 0
-                                        ? graphController.rowSummary(map.hoveredRow)
+        readonly property string body: map.hoveredRow >= 0 && root.backend
+                                        ? root.backend.rowSummary(map.hoveredRow)
                                         : map.hoveredState
         visible: body !== ""
         x: Math.min(map.x + map.hoverPosition.x + 14, root.width - width - 4)
@@ -90,9 +96,9 @@ Item {
 
     Text {
         anchors.centerIn: parent
-        visible: graphController.loading || !graphController.mapHasCoordinates
-        text: graphController.loading ? qsTr("Loading…")
-              : graphController.rowCount === 0 ? qsTr("Load a dataset with latitude and longitude")
+        visible: !root.backend || !root.backend.hasCoordinates
+        text: !root.backend || root.backend.rowCount === 0
+              ? qsTr("Load a dataset with latitude and longitude")
               : qsTr("No latitude/longitude columns found.\nPick them above if they have other names.")
         horizontalAlignment: Text.AlignHCenter
         color: "#5a6369"
@@ -100,10 +106,9 @@ Item {
     }
 
     Connections {
-        target: graphController
-        function onDataLoaded() { root.reload() }
-        function onMapChanged() { root.reload() }
+        target: root.backend
+        function onChanged() { root.reload() }
     }
 
-    Component.onCompleted: reload()
+    onBackendChanged: reload()
 }

@@ -44,6 +44,19 @@ class TestUsMap : public QObject
     Q_OBJECT
 
 private slots:
+    void detectLatLonWithoutTable()
+    {
+        const QStringList headers{"name", "start_lat", "end_lng", "start_lng"};
+        const int num = int(CellType::Number), txt = int(CellType::Text);
+        const QVector<int> types{txt, num, num, num};
+        const auto all = [](int, double) { return true; };
+        const UsMap::LatLonColumns c = UsMap::detectLatLon(headers, types, all);
+        QCOMPARE(c.lat, 1);
+        QCOMPARE(c.lon, 3); // same prefix as the lat column
+        const auto none = [](int, double) { return false; };
+        QVERIFY(!UsMap::detectLatLon(headers, types, none).isValid());
+    }
+
     void projectionCentreAndDirections()
     {
         const QPointF centre = project(-96.0, 37.5);

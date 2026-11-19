@@ -114,6 +114,20 @@ QVariant DatasetTableModel::data(const QModelIndex &index, int role) const
         return m_table.rows.at(m_order.at(index.row())).at(index.column());
     case NumericRole:
         return isNumericColumn(index.column());
+    case ValueRole: {
+        const int type = m_table.types.value(index.column());
+        if (type == static_cast<int>(CellType::Text))
+            return {};
+        const QString &cell = m_table.rows.at(m_order.at(index.row())).at(index.column());
+        double v = 0.0;
+        const bool ok = type == static_cast<int>(CellType::Date) ? Parsers::parseDate(cell, &v)
+                                                                 : Parsers::parseNumber(cell, &v);
+        if (!ok || !std::isfinite(v))
+            return {};
+        return v;
+    }
+    case SourceRowRole:
+        return m_order.at(index.row());
     default:
         return {};
     }
@@ -121,6 +135,9 @@ QVariant DatasetTableModel::data(const QModelIndex &index, int role) const
 
 QVariant DatasetTableModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
+    if (role == ColumnTypeRole && orientation == Qt::Horizontal)
+        return section >= 0 && section < m_table.types.size() ? QVariant(m_table.types.at(section))
+                                                                : QVariant();
     if (role != Qt::DisplayRole)
         return {};
     if (orientation == Qt::Horizontal)
@@ -132,5 +149,8 @@ QHash<int, QByteArray> DatasetTableModel::roleNames() const
 {
     QHash<int, QByteArray> names = QAbstractTableModel::roleNames();
     names.insert(NumericRole, "numeric");
+    names.insert(ValueRole, "value");
+    names.insert(SourceRowRole, "sourceRow");
+    names.insert(ColumnTypeRole, "columnType");
     return names;
 }

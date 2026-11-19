@@ -10,6 +10,8 @@
 #include <QString>
 #include <QVector>
 
+#include <functional>
+
 // Everything the US map needs that is not drawing: the projection, the state
 // outlines and finding latitude/longitude in a dataset. No QML here, so it
 // is unit-tested on its own (tests/tst_usmap.cpp).
@@ -65,6 +67,11 @@ struct LatLonColumns
 // "station.lat" or "start_lng", whose values are in range. Prefers a lon
 // column with the same prefix as the lat column ("start_lat" + "start_lon").
 LatLonColumns detectLatLon(const GraphTable &table);
+
+// Same, for callers without a GraphTable (chart plugins reading a model):
+// `inRange(column, limit)` answers columnInRange for that column.
+LatLonColumns detectLatLon(const QStringList &headers, const QVector<int> &types,
+                           const std::function<bool(int column, double limit)> &inRange);
 
 // True if most values of `column` are numbers within [-limit, limit].
 bool columnInRange(const GraphTable &table, int column, double limit);

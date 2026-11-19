@@ -330,8 +330,9 @@ Rectangle {
                     Layout.preferredWidth: 100
                     Layout.preferredHeight: root.cardHeight
 
-                    UsMap {
+                    PluginView {
                         id: usMap
+                        pluginId: "core.viz.usmap"
                     }
                 }
 
@@ -344,8 +345,9 @@ Rectangle {
                     Layout.preferredWidth: 100
                     Layout.preferredHeight: root.cardHeight
 
-                    LineGraph {
+                    PluginView {
                         id: lineGraph
+                        pluginId: "core.viz.line"
                     }
                 }
 
@@ -358,8 +360,9 @@ Rectangle {
                     Layout.preferredWidth: 100
                     Layout.preferredHeight: root.cardHeight
 
-                    BarGraph {
+                    PluginView {
                         id: barGraph
+                        pluginId: "core.viz.bar"
                     }
                 }
 
@@ -372,8 +375,9 @@ Rectangle {
                     Layout.preferredWidth: 100
                     Layout.preferredHeight: root.cardHeight
 
-                    AreaChart {
+                    PluginView {
                         id: areaChart
+                        pluginId: "core.viz.area"
                     }
                 }
 
@@ -386,8 +390,9 @@ Rectangle {
                     Layout.preferredWidth: 100
                     Layout.preferredHeight: root.cardHeight
 
-                    Histogram {
+                    PluginView {
                         id: histogram
+                        pluginId: "core.viz.histogram"
                     }
                 }
 
@@ -400,8 +405,9 @@ Rectangle {
                     Layout.preferredWidth: 100
                     Layout.preferredHeight: root.cardHeight
 
-                    PieChart {
+                    PluginView {
                         id: pieChart
+                        pluginId: "core.viz.pie"
                     }
                 }
 
@@ -414,8 +420,9 @@ Rectangle {
                     Layout.preferredWidth: 100
                     Layout.preferredHeight: root.cardHeight
 
-                    ScatterPlot {
+                    PluginView {
                         id: scatterPlot
+                        pluginId: "core.viz.scatter"
                     }
                 }
 

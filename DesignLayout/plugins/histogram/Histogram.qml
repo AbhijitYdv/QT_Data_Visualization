@@ -3,14 +3,19 @@ import QtQuick.Controls
 import QtCharts
 
 // Histogram of the Y column: how many rows fall in each value range.
-// The bars are one outline drawn by C++ (fillHistogramSeries) on a real number
+// The bars are one outline drawn by C++ (backend.fillSeries) on a real number
 // axis, so the X labels are values, not one label per bar.
 // The slider changes the number of bins; "Auto" goes back to the default.
+// The dashboard sets `backend` (a HistogramBackend) when it loads this file.
 Item {
     id: root
     anchors.fill: parent
 
-    property var hist: ({ counts: [], edges: [], labels: [], maxCount: 0, bins: 0 })
+    property QtObject backend
+    readonly property var hist: backend
+        ? { counts: backend.counts, edges: backend.edges, labels: backend.labels,
+            maxCount: backend.maxCount, bins: backend.binCount }
+        : { counts: [], edges: [], labels: [], maxCount: 0, bins: 0 }
     property string hoverText: ""
 
     // Whole-number Y axis for counts: the smallest step of 1, 2 or 5 x 10^k
@@ -29,8 +34,8 @@ Item {
     readonly property var yAxis: countAxis(hist.maxCount)
 
     function reload() {
-        root.hist = graphController.histogramData()
-        graphController.fillHistogramSeries(outline)
+        if (root.backend)
+            root.backend.fillSeries(outline)
         root.hoverText = ""
     }
 
@@ -101,9 +106,8 @@ Item {
 
         Text {
             anchors.centerIn: parent
-            visible: graphController.loading || root.hist.bins === 0
-            text: graphController.loading ? qsTr("Loading…")
-                                          : qsTr("Load a dataset to see this chart")
+            visible: root.hist.bins === 0
+            text: qsTr("Load a dataset to see this chart")
             color: "#5a6369"
             font.pixelSize: 13
         }
@@ -156,9 +160,9 @@ Item {
             to: 60
             stepSize: 1
             snapMode: Slider.SnapAlways
-            value: graphController.histogramBins > 0 ? graphController.histogramBins
-                                                     : graphController.histogramAutoBins
-            onMoved: graphController.histogramBins = value
+            value: root.backend ? (root.backend.bins > 0 ? root.backend.bins
+                                                         : root.backend.autoBins) : 3
+            onMoved: root.backend.bins = value
         }
 
         Text {
@@ -170,27 +174,27 @@ Item {
 
         Text {
             anchors.verticalCenter: parent.verticalCenter
-            text: graphController.histogramBins > 0 ? qsTr("Auto") : qsTr("(auto)")
-            color: graphController.histogramBins > 0
+            readonly property bool manual: root.backend && root.backend.bins > 0
+            text: manual ? qsTr("Auto") : qsTr("(auto)")
+            color: manual
                    ? (autoMouse.containsMouse ? "#e6e8ea" : "#4f9a86") : "#5a6369"
             font.pixelSize: 11
 
             MouseArea {
                 id: autoMouse
                 anchors.fill: parent
-                enabled: graphController.histogramBins > 0
+                enabled: parent.manual
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
-                onClicked: graphController.histogramBins = 0
+                onClicked: root.backend.bins = 0
             }
         }
     }
 
     Connections {
-        target: graphController
-        function onDataLoaded() { root.reload() }
-        function onHistogramChanged() { root.reload() }
+        target: root.backend
+        function onChanged() { root.reload() }
     }
 
-    Component.onCompleted: reload()
+    onBackendChanged: reload()
 }

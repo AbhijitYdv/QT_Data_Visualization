@@ -1,7 +1,7 @@
 # US map data: projection, bundled state outlines, finding lat/lon columns.
-# The drawing itself (UsMapItem) is part of the app because it needs Qt Quick;
-# this library only needs Qt Core and Qt Gui (QPainterPath), so its tests run
-# without any QML.
+# The drawing itself (UsMapView) is in the map plugin (plugins/usmap) because
+# it needs Qt Quick; this library only needs Qt Core and Qt Gui (QPainterPath),
+# so its tests run without any QML.
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Sql) # Sql: used by dataparsers
 

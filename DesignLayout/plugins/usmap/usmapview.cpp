@@ -1,4 +1,4 @@
-#include "usmapitem.h"
+#include "usmapview.h"
 #include "usmapdata.h"
 
 #include <QPainter>
@@ -21,14 +21,14 @@ const QColor kHoverRing("#e6e8ea");
 
 } // namespace
 
-UsMapItem::UsMapItem(QQuickItem *parent)
+UsMapView::UsMapView(QQuickItem *parent)
     : QQuickPaintedItem(parent)
 {
     setAcceptHoverEvents(true);
     setAntialiasing(true);
 }
 
-void UsMapItem::setPoints(const QVector<QPointF> &lonLat, const QVector<int> &rows)
+void UsMapView::setPoints(const QVector<QPointF> &lonLat, const QVector<int> &rows)
 {
     m_projected.clear();
     m_projected.reserve(lonLat.size());
@@ -45,7 +45,7 @@ void UsMapItem::setPoints(const QVector<QPointF> &lonLat, const QVector<int> &ro
     update();
 }
 
-void UsMapItem::geometryChange(const QRectF &newGeometry, const QRectF &oldGeometry)
+void UsMapView::geometryChange(const QRectF &newGeometry, const QRectF &oldGeometry)
 {
     QQuickPaintedItem::geometryChange(newGeometry, oldGeometry);
     if (newGeometry.size() != oldGeometry.size()) {
@@ -56,7 +56,7 @@ void UsMapItem::geometryChange(const QRectF &newGeometry, const QRectF &oldGeome
 
 // Fits the map into the item (keeping its shape), then moves the dots,
 // rebuilds the hover grid and redraws the cached state outlines.
-void UsMapItem::updateLayout()
+void UsMapView::updateLayout()
 {
     const UsMap::Outline &outline = UsMap::bundledOutline();
     const QRectF area = boundingRect().adjusted(8, 8, -8, -8);
@@ -96,7 +96,7 @@ void UsMapItem::updateLayout()
         p.drawPath(state.path);
 }
 
-void UsMapItem::paint(QPainter *painter)
+void UsMapView::paint(QPainter *painter)
 {
     painter->setRenderHint(QPainter::Antialiasing);
     if (!m_statesImage.isNull())
@@ -131,12 +131,12 @@ void UsMapItem::paint(QPainter *painter)
     }
 }
 
-quint64 UsMapItem::cellKey(int cx, int cy)
+quint64 UsMapView::cellKey(int cx, int cy)
 {
     return (quint64(quint32(cx)) << 32) | quint32(cy);
 }
 
-int UsMapItem::nearestPoint(const QPointF &pos) const
+int UsMapView::nearestPoint(const QPointF &pos) const
 {
     const int cx = int(pos.x() / kCell), cy = int(pos.y() / kCell);
     int best = -1;
@@ -159,7 +159,7 @@ int UsMapItem::nearestPoint(const QPointF &pos) const
     return best;
 }
 
-void UsMapItem::hoverMoveEvent(QHoverEvent *event)
+void UsMapView::hoverMoveEvent(QHoverEvent *event)
 {
     const QPointF pos = event->position();
     const int point = nearestPoint(pos);
@@ -177,7 +177,7 @@ void UsMapItem::hoverMoveEvent(QHoverEvent *event)
         update();
 }
 
-void UsMapItem::hoverLeaveEvent(QHoverEvent *event)
+void UsMapView::hoverLeaveEvent(QHoverEvent *event)
 {
     Q_UNUSED(event)
     m_hoverIndex = -1;

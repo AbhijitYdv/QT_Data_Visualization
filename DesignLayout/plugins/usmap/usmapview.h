@@ -1,5 +1,5 @@
-#ifndef USMAPITEM_H
-#define USMAPITEM_H
+#ifndef USMAPVIEW_H
+#define USMAPVIEW_H
 
 #include <QHash>
 #include <QImage>
@@ -10,12 +10,12 @@
 
 // Draws the lower 48 states with one dot per data point, using QPainter.
 //
-// Fill it from QML with graphController.fillMap(map). The state outlines are
+// Filled by MapBackend::fillMap(item) (map plugin). The state outlines are
 // drawn once into a cached image and only redrawn when the item is resized;
 // the dots are drawn on top. Hovering finds the nearest dot within 6 px
 // (through a grid, so it stays fast with many points), or else the state
 // under the cursor.
-class UsMapItem : public QQuickPaintedItem
+class UsMapView : public QQuickPaintedItem
 {
     Q_OBJECT
     Q_PROPERTY(int pointCount READ pointCount NOTIFY pointsChanged)
@@ -24,7 +24,7 @@ class UsMapItem : public QQuickPaintedItem
     Q_PROPERTY(QPointF hoverPosition READ hoverPosition NOTIFY hoverChanged)
 
 public:
-    explicit UsMapItem(QQuickItem *parent = nullptr);
+    explicit UsMapView(QQuickItem *parent = nullptr);
 
     // lonLat: x = longitude, y = latitude; rows: the table row of each point.
     void setPoints(const QVector<QPointF> &lonLat, const QVector<int> &rows);
@@ -63,4 +63,4 @@ private:
     QPointF m_hoverPos;
 };
 
-#endif // USMAPITEM_H
+#endif // USMAPVIEW_H

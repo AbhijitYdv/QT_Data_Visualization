@@ -11,8 +11,6 @@ qt6_add_qml_module(DesignLayoutContent
     QML_FILES
         "App.qml"
         "Main.ui.qml"
-        "LineGraph.qml"
-        "BarGraph.qml"
         "ImportButton.qml"
         "DashboardCard.qml"
         "PluginRow.qml"
@@ -21,10 +19,6 @@ qt6_add_qml_module(DesignLayoutContent
         "ColumnPicker.qml"
         "DataControls.qml"
         "SummaryCards.qml"
-        "AreaChart.qml"
-        "Histogram.qml"
-        "PieChart.qml"
         "DataTable.qml"
-        "UsMap.qml"
-        "ScatterPlot.qml"
+        "PluginView.qml"
 )

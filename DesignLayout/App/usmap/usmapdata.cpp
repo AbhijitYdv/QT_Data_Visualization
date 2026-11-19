@@ -162,19 +162,27 @@ QPair<QString, QString> splitName(const QString &header)
 
 LatLonColumns detectLatLon(const GraphTable &table)
 {
+    return detectLatLon(table.headers, table.types, [&table](int column, double limit) {
+        return columnInRange(table, column, limit);
+    });
+}
+
+LatLonColumns detectLatLon(const QStringList &headers, const QVector<int> &types,
+                           const std::function<bool(int column, double limit)> &inRange)
+{
     static const QSet<QString> latNames{QStringLiteral("lat"), QStringLiteral("latitude")};
     static const QSet<QString> lonNames{QStringLiteral("lon"), QStringLiteral("lng"),
                                         QStringLiteral("long"), QStringLiteral("longitude")};
     const int number = static_cast<int>(CellType::Number);
 
     QVector<int> lats, lons;
-    for (int c = 0; c < table.headers.size(); ++c) {
-        if (table.types.value(c) != number)
+    for (int c = 0; c < headers.size(); ++c) {
+        if (types.value(c) != number)
             continue;
-        const QString word = splitName(table.headers.at(c)).second;
-        if (latNames.contains(word) && columnInRange(table, c, 90.0))
+        const QString word = splitName(headers.at(c)).second;
+        if (latNames.contains(word) && inRange(c, 90.0))
             lats << c;
-        else if (lonNames.contains(word) && columnInRange(table, c, 180.0))
+        else if (lonNames.contains(word) && inRange(c, 180.0))
             lons << c;
     }
 
@@ -183,9 +191,9 @@ LatLonColumns detectLatLon(const GraphTable &table)
         return result;
     result.lat = lats.first();
     result.lon = lons.first();
-    const QString prefix = splitName(table.headers.at(result.lat)).first;
+    const QString prefix = splitName(headers.at(result.lat)).first;
     for (int c : std::as_const(lons)) {
-        if (splitName(table.headers.at(c)).first == prefix) {
+        if (splitName(headers.at(c)).first == prefix) {
             result.lon = c;
             break;
         }

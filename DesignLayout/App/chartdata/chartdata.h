@@ -64,6 +64,12 @@ struct Group
 QVector<Group> groups(const GraphTable &table, const QVector<int> &rows,
                       int groupColumn, int valueColumn, int maxGroups = 7);
 
+// Same, for callers that already have one label per row (chart plugins
+// reading a model). `values` empty: count rows; otherwise one value per
+// label, NaN for "not a number" (the row still counts, its value doesn't).
+QVector<Group> groups(const QStringList &labels, const QVector<double> &values,
+                      int maxGroups = 7);
+
 } // namespace ChartData
 
 #endif // CHARTDATA_H
