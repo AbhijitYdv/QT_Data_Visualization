@@ -344,8 +344,9 @@ Rectangle {
                     Layout.preferredWidth: 100
                     Layout.preferredHeight: root.cardHeight
 
-                    LineGraph {
+                    PluginView {
                         id: lineGraph
+                        pluginId: "core.viz.line"
                     }
                 }
 
@@ -358,7 +359,6 @@ Rectangle {
                     Layout.preferredWidth: 100
                     Layout.preferredHeight: root.cardHeight
 
-                    // Drawn by the bar chart plugin (plugins/barchart)
                     PluginView {
                         id: barGraph
                         pluginId: "core.viz.bar"
@@ -374,8 +374,9 @@ Rectangle {
                     Layout.preferredWidth: 100
                     Layout.preferredHeight: root.cardHeight
 
-                    AreaChart {
+                    PluginView {
                         id: areaChart
+                        pluginId: "core.viz.area"
                     }
                 }
 
@@ -416,8 +417,9 @@ Rectangle {
                     Layout.preferredWidth: 100
                     Layout.preferredHeight: root.cardHeight
 
-                    ScatterPlot {
+                    PluginView {
                         id: scatterPlot
+                        pluginId: "core.viz.scatter"
                     }
                 }
 

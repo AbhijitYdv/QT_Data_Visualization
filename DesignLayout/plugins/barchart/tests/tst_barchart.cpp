@@ -77,8 +77,10 @@ private slots:
         QCOMPARE(b->property("labels").toStringList(), (QStringList{"1", "2", "3", "4", "5"}));
         QCOMPARE(values(b), (QList<double>{40, 30, 20, 10, 0}));
         QCOMPARE(b->property("grouped").toBool(), false);
-        QCOMPARE(b->property("minY").toDouble(), 0.0);
-        QCOMPARE(b->property("maxY").toDouble(), 40.0);
+        QCOMPARE(b->property("dataMinY").toDouble(), 0.0);
+        QCOMPARE(b->property("dataMaxY").toDouble(), 40.0);
+        QCOMPARE(b->property("minY").toDouble(), -2.0); // padded 5% for the axis
+        QCOMPARE(b->property("maxY").toDouble(), 42.0);
     }
 
     void rowNumberXIgnoresTableSort()

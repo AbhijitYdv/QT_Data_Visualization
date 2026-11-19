@@ -36,6 +36,16 @@ function(datascope_add_plugin target)
 
     qt_add_plugin(${target} SHARED)
     target_sources(${target} PRIVATE ${arg_SOURCES})
+
+    # Keep every symbol private to the plugin (Qt still exports the plugin's
+    # entry point). Without this, two plugins - or a plugin and the app -
+    # that both contain the same class (e.g. XYBackend from xyplot) can end
+    # up sharing one copy of its inline/template code at load time, and
+    # qobject_cast / queued calls then see the "wrong" class. On macOS this
+    # shows up as "ASSERT failure ... Called object is not of the correct type".
+    set_target_properties(${target} PROPERTIES
+        CXX_VISIBILITY_PRESET hidden
+        VISIBILITY_INLINES_HIDDEN ON)
     target_link_libraries(${target} PRIVATE pluginapi ${arg_LIBRARIES})
 
     set(files ${arg_QML_FILES} ${arg_RESOURCES})

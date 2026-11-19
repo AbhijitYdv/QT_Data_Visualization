@@ -62,7 +62,7 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     Qt6::QuickWidgets
     Qt6::Charts
 )
-add_subdirectory(plugins/barchart)   # chart plugins (after qt_add_executable)
+add_subdirectory(plugins)            # chart plugins (after qt_add_executable)
 include(qds)
 
 if (BUILD_QDS_COMPONENTS)

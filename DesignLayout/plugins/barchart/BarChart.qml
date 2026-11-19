@@ -31,7 +31,7 @@ ChartView {
         }
 
         axisY: ValueAxis {
-            // Bars start from 0 unless the data goes negative.
+            // Bars start from 0 unless the data goes negative (minY/maxY are padded).
             min: chart.backend ? Math.min(0, chart.backend.minY) : 0
             max: chart.backend ? Math.max(0, chart.backend.maxY) : 1
             tickCount: 6
