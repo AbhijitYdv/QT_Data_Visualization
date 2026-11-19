@@ -43,7 +43,6 @@ qt_add_executable(${CMAKE_PROJECT_NAME}
     App/graphcontroller.h App/graphcontroller.cpp
         App/graphtable.h
         App/datasethistory.h App/datasethistory.cpp
-        App/usmap/usmapitem.h App/usmap/usmapitem.cpp
 
 )
 qt_add_resources(${CMAKE_PROJECT_NAME} "configuration"
